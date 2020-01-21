@@ -33,12 +33,12 @@ class XMPP {
     lateinit var verifier: HostnameVerifier
     lateinit var connection: XMPPConnection
     var xmppName: String? = ""
-    private var mContext : Context? = null
+    private var mContext: Context? = null
 
     fun XMPPConnecttion(
         name: String?,
         password: String?,
-        context : Context?
+        context: Context?
     ) {
         xmppName = name
         mContext = context
@@ -65,7 +65,7 @@ class XMPP {
     fun XMPPConnect() {
         try {
             (connection as XMPPTCPConnection).connect()
-            Toast.makeText(mContext,"app connect : connect Success.",Toast.LENGTH_SHORT).show()
+            Toast.makeText(mContext, "app connect : connect Success.", Toast.LENGTH_SHORT).show()
             Log.d("app connect", "${isConnect()}")
         } catch (e: Exception) {
             Log.d("app connect", e.toString())
@@ -75,10 +75,18 @@ class XMPP {
     fun XMPPLogin() {
         try {
             (connection as XMPPTCPConnection).login()
-            Toast.makeText(mContext,"app login : login Success.",Toast.LENGTH_SHORT).show()
+            Toast.makeText(mContext, "app login : login Success.", Toast.LENGTH_SHORT).show()
             Log.d("app login", "${isAuthenticate()}")
         } catch (e: Exception) {
             Log.d("app login", e.toString())
+        }
+    }
+
+    fun logOut() {
+        try {
+            (connection as? XMPPTCPConnection)?.disconnect()
+        } catch (e: Exception) {
+            Log.d("app logOut", e.toString())
         }
     }
 
@@ -90,14 +98,10 @@ class XMPP {
         return connection.isAuthenticated
     }
 
-    var multiUserManager : MultiUserChatManager? = null
+    var multiUserManager: MultiUserChatManager? = null
     var multiUserJid: EntityBareJid? = null
     var multiUserChat: MultiUserChat? = null
     var nickname: Resourcepart? = null
-
-    fun onCreateOneOnOneChatRoom() {
-
-    }
 
     fun sendMessage(body: String, toJid: String) {
         Log.d("app", "Sending message to :$toJid")
@@ -128,7 +132,7 @@ class XMPP {
         Log.d("app ", "Sending message to :$message")
         try {
             multiUserChat?.sendMessage(message)
-        } catch (e :Exception) {
+        } catch (e: Exception) {
             Log.d("app", "Sending $e")
         }
     }
@@ -142,7 +146,8 @@ class XMPP {
 
             val owners = JidUtil.jidSetFrom(arrayOf("me@natchatserver", "juliet@enatchatserver"))
 
-            multiUserChat?.create(nickname)?.configFormManager?.setRoomOwners(owners)?.submitConfigurationForm()
+            multiUserChat?.create(nickname)?.configFormManager?.setRoomOwners(owners)
+                ?.submitConfigurationForm()
         } catch (e: Exception) {
             Log.d("app create", e.toString())
         }
@@ -156,8 +161,8 @@ class XMPP {
     fun leaveChatRoom() {
         try {
             if (isJoined() == true) multiUserChat?.leave()
-            Log.d("app leave",multiUserChat?.isJoined.toString())
-        } catch (e :Exception) {
+            Log.d("app leave", multiUserChat?.isJoined.toString())
+        } catch (e: Exception) {
             Log.d("app leave", e.toString())
         }
     }
@@ -166,7 +171,7 @@ class XMPP {
         try {
             multiUserChat?.join(nickname)
             if (isJoined() == true) {
-                Toast.makeText(mContext,"app Join : Join Room Success.",Toast.LENGTH_SHORT).show()
+                Toast.makeText(mContext, "app Join : Join Room Success.", Toast.LENGTH_SHORT).show()
                 Log.d("app Join", "Join Room Success.")
 
             }

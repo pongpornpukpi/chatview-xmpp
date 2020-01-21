@@ -40,8 +40,6 @@ class ChatViewActivity : AppCompatActivity() {
         if (userList?.isGroup == true) {
             xmpp.onCreateMultiChatGroupRoom(userList?.name)
             xmpp.onJoinMultiChatGroupRoom()
-        } else {
-            xmpp.onCreateOneOnOneChatRoom()
         }
         initObserver()
         initRecyclerView()
