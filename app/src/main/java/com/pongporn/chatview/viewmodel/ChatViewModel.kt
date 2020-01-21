@@ -28,8 +28,9 @@ class ChatViewModel constructor(var xmpp: XMPP) : ViewModel(),CoroutineScope {
         withContext(Dispatchers.IO) {
             xmpp.multiUserChat?.addMessageListener { message ->
                 Log.d("app message Multi", message?.body ?: "null")
+                val fromMessage = message.from.resourceOrEmpty
                 if (message.body != null) {
-                    messageliveData.postValue("${message.from} : ${message.body}")
+                    messageliveData.postValue("$fromMessage : ${message.body}")
                 }
             }
         }

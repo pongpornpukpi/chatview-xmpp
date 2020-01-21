@@ -70,6 +70,9 @@ class ChatViewActivity : AppCompatActivity() {
                 xmpp.multiChatSendMessage(et_comment.text.toString())
             } else {
                 xmpp.sendMessage(et_comment.text.toString(), "${userList?.name}@natchatserver")
+                chatList.add("${userList?.name} : ${et_comment.text.toString()}")
+                chatAdapter.clearList()
+                chatAdapter.addlist(chatList)
             }
         }
     }
