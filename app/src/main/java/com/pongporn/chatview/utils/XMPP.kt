@@ -85,6 +85,8 @@ class XMPP {
     fun logOut() {
         try {
             (connection as? XMPPTCPConnection)?.disconnect()
+            Toast.makeText(mContext, "app logOut : logOut Success.", Toast.LENGTH_SHORT).show()
+            Log.d("app logOut", isConnect().toString())
         } catch (e: Exception) {
             Log.d("app logOut", e.toString())
         }
@@ -161,6 +163,7 @@ class XMPP {
     fun leaveChatRoom() {
         try {
             if (isJoined() == true) multiUserChat?.leave()
+            Toast.makeText(mContext, "app leave : leave Room Success.", Toast.LENGTH_SHORT).show()
             Log.d("app leave", multiUserChat?.isJoined.toString())
         } catch (e: Exception) {
             Log.d("app leave", e.toString())
