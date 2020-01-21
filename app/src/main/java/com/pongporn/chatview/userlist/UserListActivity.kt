@@ -37,7 +37,7 @@ class UserListActivity : AppCompatActivity() {
     private fun initClick() {
         button2.setOnClickListener {
             if (xmpp.isConnect()) {
-                (xmpp.connection as XMPPTCPConnection).disconnect()
+                xmpp.logOut()
                 finish()
             } else {
                 finish()
