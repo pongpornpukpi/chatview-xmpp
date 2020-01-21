@@ -146,10 +146,13 @@ class XMPP {
             multiUserManager = MultiUserChatManager.getInstanceFor(connection)
             multiUserChat = multiUserManager?.getMultiUserChat(multiUserJid)
 
-            val owners = JidUtil.jidSetFrom(arrayOf("me@natchatserver", "juliet@enatchatserver"))
+            val owners =
+                JidUtil.jidSetFrom(arrayOf("kia.puk@natchatserver", "nonnyzcsrt@enatchatserver"))
 
-            multiUserChat?.create(nickname)?.configFormManager?.setRoomOwners(owners)
-                ?.submitConfigurationForm()
+            multiUserChat?.create(nickname)?.makeInstant()
+//                ?.configFormManager
+//                ?.setRoomOwners(owners)
+//                ?.submitConfigurationForm()
         } catch (e: Exception) {
             Log.d("app create", e.toString())
         }
