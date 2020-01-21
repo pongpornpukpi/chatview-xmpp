@@ -68,6 +68,7 @@ class XMPP {
             Toast.makeText(mContext, "app connect : connect Success.", Toast.LENGTH_SHORT).show()
             Log.d("app connect", "${isConnect()}")
         } catch (e: Exception) {
+            Toast.makeText(mContext, "app connect : connect Error.", Toast.LENGTH_SHORT).show()
             Log.d("app connect", e.toString())
         }
     }
@@ -78,6 +79,7 @@ class XMPP {
             Toast.makeText(mContext, "app login : login Success.", Toast.LENGTH_SHORT).show()
             Log.d("app login", "${isAuthenticate()}")
         } catch (e: Exception) {
+            Toast.makeText(mContext, "app login : login Error.", Toast.LENGTH_SHORT).show()
             Log.d("app login", e.toString())
         }
     }
@@ -88,6 +90,7 @@ class XMPP {
             Toast.makeText(mContext, "app logOut : logOut Success.", Toast.LENGTH_SHORT).show()
             Log.d("app logOut", isConnect().toString())
         } catch (e: Exception) {
+            Toast.makeText(mContext, "app logOut : logOut Error.", Toast.LENGTH_SHORT).show()
             Log.d("app logOut", e.toString())
         }
     }
@@ -135,6 +138,7 @@ class XMPP {
         try {
             multiUserChat?.sendMessage(message)
         } catch (e: Exception) {
+            Toast.makeText(mContext, "app Sending : Sending Error.", Toast.LENGTH_SHORT).show()
             Log.d("app", "Sending $e")
         }
     }
@@ -154,6 +158,7 @@ class XMPP {
 //                ?.setRoomOwners(owners)
 //                ?.submitConfigurationForm()
         } catch (e: Exception) {
+            Toast.makeText(mContext, "app create : create Error.", Toast.LENGTH_SHORT).show()
             Log.d("app create", e.toString())
         }
 
@@ -169,6 +174,7 @@ class XMPP {
             Toast.makeText(mContext, "app leave : leave Room Success.", Toast.LENGTH_SHORT).show()
             Log.d("app leave", multiUserChat?.isJoined.toString())
         } catch (e: Exception) {
+            Toast.makeText(mContext, "app leave : leave Error.", Toast.LENGTH_SHORT).show()
             Log.d("app leave", e.toString())
         }
     }
@@ -179,9 +185,9 @@ class XMPP {
             if (isJoined() == true) {
                 Toast.makeText(mContext, "app Join : Join Room Success.", Toast.LENGTH_SHORT).show()
                 Log.d("app Join", "Join Room Success.")
-
             }
         } catch (e: Exception) {
+            Toast.makeText(mContext, "app Join : Join Error.", Toast.LENGTH_SHORT).show()
             Log.d("app Join", e.toString())
         }
     }

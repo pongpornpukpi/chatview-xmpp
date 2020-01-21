@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import com.pongporn.chatview.userlist.UserListActivity
 import com.pongporn.chatview.utils.XMPP
 import kotlinx.android.synthetic.main.activity_main.*
@@ -26,12 +28,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun initClick() {
         button.setOnClickListener {
-            name = editText.text.toString().split("@").get(0)
-            password = editText2.text.toString()
-            nameRoom = editText.text.toString().split("@").get(1)
-            val task = MyLoginTask(this, xmpp)
-            task.setUsernameAndPassword(name, password,nameRoom)
-            task.execute()
+            if (editText.text.toString().isNotEmpty() && editText.text.contains("@")) {
+                name = editText.text.toString().split("@")[0]
+                password = editText2.text.toString()
+                nameRoom = editText.text.toString().split("@")[1]
+                val task = MyLoginTask(this, xmpp)
+                task.setUsernameAndPassword(name, password,nameRoom)
+                task.execute()
+            }
         }
     }
 
