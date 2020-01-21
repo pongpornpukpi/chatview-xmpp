@@ -29,7 +29,7 @@ class ChatViewModel constructor(var xmpp: XMPP) : ViewModel(),CoroutineScope {
             xmpp.multiUserChat?.addMessageListener { message ->
                 Log.d("app message Multi", message?.body ?: "null")
                 if (message.body != null) {
-                    messageliveData.postValue(message.body)
+                    messageliveData.postValue("${message.from} : ${message.body}")
                 }
             }
         }
@@ -48,7 +48,7 @@ class ChatViewModel constructor(var xmpp: XMPP) : ViewModel(),CoroutineScope {
                     Log.d("app receiveMessage", "message.getBody() :" + message?.body)
                     Log.d("app receiveMessage", "message.getFrom() :" + message?.from)
                     if (message.body != null) {
-                        messageliveData.postValue(message.body)
+                        messageliveData.postValue("${message.from} : ${message.body}")
                     }
                 }
         }
