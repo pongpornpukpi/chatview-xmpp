@@ -4,18 +4,22 @@ import android.os.Bundle
 import android.os.Message
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pongporn.chatview.R
 import com.pongporn.chatview.userlist.UserListModel
 import com.pongporn.chatview.utils.XMPP
+import com.pongporn.chatview.viewmodel.ChatViewModel
 import kotlinx.android.synthetic.main.activity_chat_view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jivesoftware.smack.chat2.ChatManager
+import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ChatViewActivity : AppCompatActivity() {
 
@@ -27,20 +31,35 @@ class ChatViewActivity : AppCompatActivity() {
     private var userList: UserListModel? = null
     private var chatList = mutableListOf<String>()
     private val xmpp: XMPP by inject()
+    private val viewModel: ChatViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_view)
         userList = intent.getParcelableExtra<UserListModel>(USER_NAME)
         if (userList?.isGroup == true) {
-            xmpp.onCreateMultiChatGroupRoom("Room23")
+            xmpp.onCreateMultiChatGroupRoom(userList?.name)
             xmpp.onJoinMultiChatGroupRoom()
         } else {
             xmpp.onCreateOneOnOneChatRoom()
         }
+        initObserver()
         initRecyclerView()
         initClicked()
         initView()
+    }
+
+    private fun initObserver() {
+        viewModel.getmessage().observe(this, Observer<String> {
+            chatList.add(it)
+            chatAdapter.clearList()
+            chatAdapter.addlist(chatList)
+        })
+        if (userList?.isGroup == true) {
+            viewModel.addlistenerMulti()
+        } else {
+            viewModel.addlistenerOneOnOne()
+        }
     }
 
     private fun initClicked() {
@@ -58,8 +77,8 @@ class ChatViewActivity : AppCompatActivity() {
     }
 
     private fun initView() {
+//        receiveMessage()
         title = userList?.name
-        receiveMessage()
     }
 
     private fun initRecyclerView() {
@@ -69,39 +88,8 @@ class ChatViewActivity : AppCompatActivity() {
         }
     }
 
-    private fun receiveMessage() {
-        if (userList?.isGroup == true) {
-            GlobalScope.launch {
-                withContext(Dispatchers.IO) {
-                    xmpp.multiUserChat?.addMessageListener { message ->
-                        Log.d("app message Multi", message?.body ?: "null")
-                        if (message.body != null) {
-                            chatList.add(message.body)
-                            Log.d("app message list ", chatList.toString())
-                        }
-                    }
-                }
-                if (!chatList.isNullOrEmpty()) {
-                    chatAdapter.clearList()
-                    chatAdapter.addlist(chatList)
-                }
-            }
-        } else {
-            GlobalScope.launch {
-                withContext(Dispatchers.IO) {
-                    ChatManager.getInstanceFor(xmpp.connection)
-                        .addIncomingListener { from, message, chat ->
-                            Log.d("app receiveMessage", "message.getBody() :" + message?.body)
-                            Log.d("app receiveMessage", "message.getFrom() :" + message?.from)
-                            if (message.body != null) {
-                                chatList?.add(message.body)
-                                Log.d("app message list ", chatList.toString())
-                            }
-                        }
-                }
-                chatAdapter.clearList()
-                chatAdapter.addlist(chatList)
-            }
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        xmpp.leaveChatRoom()
     }
 }

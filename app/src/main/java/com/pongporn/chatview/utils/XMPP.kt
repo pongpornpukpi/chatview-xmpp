@@ -1,6 +1,8 @@
 package com.pongporn.chatview.utils
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import com.pongporn.chatview.chat.ChatViewAdapter
 import org.jivesoftware.smack.ConnectionConfiguration
 import org.jivesoftware.smack.XMPPConnection
@@ -31,12 +33,15 @@ class XMPP {
     lateinit var verifier: HostnameVerifier
     lateinit var connection: XMPPConnection
     var xmppName: String? = ""
+    private var mContext : Context? = null
 
     fun XMPPConnecttion(
         name: String?,
-        password: String?
+        password: String?,
+        context : Context?
     ) {
         xmppName = name
+        mContext = context
         addr = InetAddress.getByName("13.76.246.6")
         serviceName = JidCreate.domainBareFrom("natchatserver")
         verifier = HostnameVerifier { p0, p1 ->
@@ -60,6 +65,7 @@ class XMPP {
     fun XMPPConnect() {
         try {
             (connection as XMPPTCPConnection).connect()
+            Toast.makeText(mContext,"app connect : connect Success.",Toast.LENGTH_SHORT).show()
             Log.d("app connect", "${isConnect()}")
         } catch (e: Exception) {
             Log.d("app connect", e.toString())
@@ -69,6 +75,7 @@ class XMPP {
     fun XMPPLogin() {
         try {
             (connection as XMPPTCPConnection).login()
+            Toast.makeText(mContext,"app login : login Success.",Toast.LENGTH_SHORT).show()
             Log.d("app login", "${isAuthenticate()}")
         } catch (e: Exception) {
             Log.d("app login", e.toString())
@@ -139,17 +146,29 @@ class XMPP {
         } catch (e: Exception) {
             Log.d("app create", e.toString())
         }
+
     }
 
     fun isJoined(): Boolean? {
         return multiUserChat?.isJoined
     }
 
+    fun leaveChatRoom() {
+        try {
+            if (isJoined() == true) multiUserChat?.leave()
+            Log.d("app leave",multiUserChat?.isJoined.toString())
+        } catch (e :Exception) {
+            Log.d("app leave", e.toString())
+        }
+    }
+
     fun onJoinMultiChatGroupRoom() {
         try {
             multiUserChat?.join(nickname)
             if (isJoined() == true) {
+                Toast.makeText(mContext,"app Join : Join Room Success.",Toast.LENGTH_SHORT).show()
                 Log.d("app Join", "Join Room Success.")
+
             }
         } catch (e: Exception) {
             Log.d("app Join", e.toString())

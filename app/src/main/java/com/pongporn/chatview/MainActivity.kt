@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
 
     private var name: String? = ""
     private var password: String? = ""
+    private var nameRoom : String? = ""
     private val xmpp: XMPP by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,10 +26,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun initClick() {
         button.setOnClickListener {
-            name = editText.text.toString()
+            name = editText.text.toString().split("@").get(0)
             password = editText2.text.toString()
+            nameRoom = editText.text.toString().split("@").get(1)
             val task = MyLoginTask(this, xmpp)
-            task.setUsernameAndPassword(name, password)
+            task.setUsernameAndPassword(name, password,nameRoom)
             task.execute()
         }
     }
@@ -40,23 +42,27 @@ class MainActivity : AppCompatActivity() {
 
         private var name: String? = ""
         private var password: String? = ""
+        private var nameRoom : String? = ""
 
         fun setUsernameAndPassword(
             name: String?,
-            password: String?
+            password: String?,
+            nameRoom: String?
         ) {
             this.name = name
             this.password = password
+            this.nameRoom = nameRoom
         }
 
         override fun doInBackground(vararg p0: String?): String {
-            xmpp.XMPPConnecttion(name, password)
+            xmpp.XMPPConnecttion(name, password,context)
             xmpp.XMPPConnect()
             xmpp.XMPPLogin()
 
             if (xmpp.isAuthenticate()) {
                 val intent = Intent(context, UserListActivity::class.java)
                 intent.putExtra(UserListActivity.NAME_USER, name)
+                intent.putExtra(UserListActivity.NAME_ROOM,nameRoom)
                 context.startActivity(intent)
             }
 
