@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
+import com.google.android.material.snackbar.Snackbar
 import com.pongporn.chatview.userlist.UserListActivity
 import com.pongporn.chatview.utils.XMPP
 import kotlinx.android.synthetic.main.activity_main.*
@@ -34,6 +36,8 @@ class MainActivity : AppCompatActivity() {
                 nameRoom = editText.text.toString().split("@")[1]
                 val task = MyLoginTask(this, xmpp)
                 task.setUsernameAndPassword(name, password,nameRoom)
+                Snackbar.make(button,"app login : wait to login...",Snackbar.LENGTH_SHORT).show()
+                Log.d("app login ",": wait to login...")
                 task.execute()
             }
         }

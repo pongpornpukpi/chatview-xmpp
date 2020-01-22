@@ -1,23 +1,21 @@
 package com.pongporn.chatview.chat
 
 import android.os.Bundle
-import android.os.Message
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.youtube.player.YouTubeInitializationResult
+import com.google.android.youtube.player.YouTubePlayer
+import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.pongporn.chatview.R
 import com.pongporn.chatview.userlist.UserListModel
 import com.pongporn.chatview.utils.XMPP
+import com.pongporn.chatview.utils.convertMillisToMinutesAndSecond
 import com.pongporn.chatview.viewmodel.ChatViewModel
 import kotlinx.android.synthetic.main.activity_chat_view.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jivesoftware.smack.chat2.ChatManager
-import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -25,13 +23,19 @@ class ChatViewActivity : AppCompatActivity() {
 
     companion object {
         const val USER_NAME = "user_name"
+        const val VIDEO_ID = "TPvW6mIB8Yc"
+        const val YOUTUBE_API_KEY = "AIzaSyAAvHB1OGvfLpgwLVvKMY3Li58g4XtGZGk"
     }
 
-    private val chatAdapter by lazy { ChatViewAdapter() }
-    private var userList: UserListModel? = null
-    private var chatList = mutableListOf<String>()
     private val xmpp: XMPP by inject()
     private val viewModel: ChatViewModel by viewModel()
+    private val chatAdapter by lazy { ChatViewAdapter() }
+
+    private var userList: UserListModel? = null
+    private var chatList = mutableListOf<String>()
+
+    lateinit var youTubePlayerInit: YouTubePlayer.OnInitializedListener
+    lateinit var youtubePlayerFillScreen: YouTubePlayer.OnFullscreenListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,25 +46,87 @@ class ChatViewActivity : AppCompatActivity() {
             xmpp.onJoinMultiChatGroupRoom()
         }
         initObserver()
-        initRecyclerView()
-        initClicked()
+        initListener()
         initView()
     }
 
-    private fun initObserver() {
-        viewModel.getmessage().observe(this, Observer<String> {
-            chatList.add(it)
-            chatAdapter.clearList()
-            chatAdapter.addlist(chatList)
-        })
-        if (userList?.isGroup == true) {
-            viewModel.addlistenerMulti()
-        } else {
-            viewModel.addlistenerOneOnOne()
-        }
-    }
+    private fun initListener() {
+        youtubePlayerFillScreen = YouTubePlayer.OnFullscreenListener {
 
-    private fun initClicked() {
+        }
+
+        youTubePlayerInit = object : YouTubePlayer.OnInitializedListener {
+            override fun onInitializationSuccess(
+                provide: YouTubePlayer.Provider?,
+                youTubePlayer: YouTubePlayer?,
+                wasRestored: Boolean
+            ) {
+                youTubePlayer?.loadVideo(VIDEO_ID)
+                youTubePlayer?.setOnFullscreenListener(youtubePlayerFillScreen)
+
+                youTubePlayer?.setPlaybackEventListener(object : YouTubePlayer.PlaybackEventListener{
+                    override fun onSeekTo(newPositionMillis: Int) {
+                        Log.d("youtube","onSeekTo $newPositionMillis")
+                    }
+
+                    override fun onBuffering(isBuffering: Boolean) {
+                        Log.d("youtube","onBuffering $isBuffering")
+                    }
+
+                    override fun onPlaying() {
+                        Log.d("youtube","onPlaying")
+                    }
+
+                    override fun onStopped() {
+                        Log.d("youtube","onStopped")
+                    }
+
+                    override fun onPaused() {
+                        Log.d("youtube","onPaused")
+                    }
+                })
+
+                youTubePlayer?.setPlayerStateChangeListener(object : YouTubePlayer.PlayerStateChangeListener{
+                    override fun onAdStarted() {
+                        Log.d("youtube","onAdStarted")
+
+                    }
+
+                    override fun onLoading() {
+                        Log.d("youtube","onLoading")
+
+                    }
+
+                    override fun onVideoStarted() {
+                        Log.d("youtube","onVideoStarted")
+
+                    }
+
+                    override fun onLoaded(p0: String?) {
+                        Log.d("youtube","onLoaded $p0")
+
+                    }
+
+                    override fun onVideoEnded() {
+                        Log.d("youtube","onVideoEnded")
+                    }
+
+                    override fun onError(error: YouTubePlayer.ErrorReason?) {
+                        Log.d("youtube","onError $error")
+                    }
+
+                })
+            }
+
+            override fun onInitializationFailure(
+                provider: YouTubePlayer.Provider?,
+                error: YouTubeInitializationResult?
+            ) {
+                Snackbar.make(et_comment, "YouTube!! Init Failure. $error", Snackbar.LENGTH_SHORT)
+                    .show()
+            }
+        }
+
         et_comment.setOnClickListener {
 
         }
@@ -77,16 +143,30 @@ class ChatViewActivity : AppCompatActivity() {
         }
     }
 
-    private fun initView() {
-//        receiveMessage()
-        title = userList?.name
+    private fun initObserver() {
+        viewModel.getmessage().observe(this, Observer<String> {
+            chatList.add(it)
+            chatAdapter.clearList()
+            chatAdapter.addlist(chatList)
+        })
+        if (userList?.isGroup == true) {
+            viewModel.addlistenerMulti()
+        } else {
+            viewModel.addlistenerOneOnOne()
+        }
     }
 
-    private fun initRecyclerView() {
+    private fun initView() {
         recyclerview_chat.apply {
             layoutManager = LinearLayoutManager(this@ChatViewActivity, RecyclerView.VERTICAL, false)
             adapter = chatAdapter
         }
+
+        title = userList?.name
+
+        val frag =
+            supportFragmentManager.findFragmentById(R.id.youtube_fragment) as YouTubePlayerSupportFragment?
+        frag?.initialize(YOUTUBE_API_KEY, youTubePlayerInit)
     }
 
     override fun onDestroy() {

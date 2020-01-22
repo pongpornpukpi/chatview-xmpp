@@ -1,8 +1,10 @@
 package com.pongporn.chatview.utils
 
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import co.intentservice.chatui.models.ChatMessage
 import com.pongporn.chatview.chat.ChatViewAdapter
 import org.jivesoftware.smack.ConnectionConfiguration
 import org.jivesoftware.smack.XMPPConnection
@@ -21,9 +23,14 @@ import org.jxmpp.jid.util.JidUtil
 import org.jivesoftware.smack.SmackException
 import org.jivesoftware.smack.chat2.Chat
 import org.jivesoftware.smack.chat2.ChatManager
-import org.jivesoftware.smack.chat2.IncomingChatMessageListener
 import org.jivesoftware.smack.packet.Message
+import org.jivesoftware.smackx.mam.MamManager
+import org.jivesoftware.smackx.mam.element.MamElements
+import org.jivesoftware.smackx.rsm.packet.RSMSet
+import org.jivesoftware.smackx.xdata.FormField
+import org.jivesoftware.smackx.xdata.packet.DataForm
 import org.jxmpp.stringprep.XmppStringprepException
+import org.jxmpp.util.XmppStringUtils
 
 class XMPP {
 
@@ -186,6 +193,70 @@ class XMPP {
             Toast.makeText(mContext, "app Join : Join Error.", Toast.LENGTH_SHORT).show()
             Log.d("app Join", e.toString())
         }
+
+    }
+
+    fun getChatHistoryWithJID(jid: String, maxResults: Int): List<ChatMessage> {
+        val chatMessageList: ArrayList<ChatMessage> = arrayListOf()
+        val mamQueryResult: MamManager.MamQueryResult? = getArchivedMessages(jid, maxResults)
+        val userSendTo: String = XmppStringUtils.parseBareJid(jid)
+        val forwarded = mamQueryResult?.forwardedMessages
+
+        try {
+            if (mamQueryResult != null && userSendTo != null) {
+                for (index in 0 until forwarded!!.size) {
+                    if (forwarded.get(index).forwardedStanza is Message) {
+                        val msg: Message = forwarded.get(index) as Message
+                        Log.d(TAG, "onCreate: $msg")
+                        Log.d(TAG, "processStanza: " + msg.from + " Say：" + msg.body + " String length：" + (msg.body != null ?: msg.body.length ?: ""))
+                        var chatMessage = if (XmppStringUtils.parseBareJid(msg.from.toString()) == userSendTo) {
+                            ChatMessage(
+                                msg.body,
+                                forwarded.get(index).delayInformation.stamp.time,
+                                ChatMessage.Type.RECEIVED
+                            )
+                        } else {
+                            ChatMessage(
+                                msg.body,
+                                forwarded.get(index).delayInformation.stamp.time,
+                                ChatMessage.Type.SENT
+                            )
+                        }
+                        chatMessageList.add(chatMessage)
+                    }
+                }
+            } else {
+                return chatMessageList
+            }
+            return chatMessageList
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return chatMessageList
+    }
+
+    private fun getArchivedMessages(jid: String, maxResult: Int): MamManager.MamQueryResult? {
+        val mamManager = MamManager.getInstanceFor(connection)
+        try {
+            val form = DataForm(DataForm.Type.submit)
+            val field = FormField(FormField.FORM_TYPE)
+            field.type = FormField.Type.hidden
+            field.addValue(MamElements.NAMESPACE)
+            form.addField(field)
+
+            val formField = FormField("with")
+            formField.addValue(jid)
+            form.addField(formField)
+
+            val rsmSet = RSMSet(maxResult, "", RSMSet.PageDirection.before)
+            val mamQueryResult = mamManager.page(form, rsmSet)
+
+            return mamQueryResult
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("app history", "$e")
+        }
+        return null
     }
 
 
