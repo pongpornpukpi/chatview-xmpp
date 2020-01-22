@@ -29,6 +29,7 @@ import org.jivesoftware.smackx.mam.element.MamElements
 import org.jivesoftware.smackx.rsm.packet.RSMSet
 import org.jivesoftware.smackx.xdata.FormField
 import org.jivesoftware.smackx.xdata.packet.DataForm
+import org.jxmpp.jid.BareJid
 import org.jxmpp.stringprep.XmppStringprepException
 import org.jxmpp.util.XmppStringUtils
 
@@ -146,6 +147,10 @@ class XMPP {
         }
     }
 
+    fun getXMPPFullJID() {
+
+    }
+
     fun onCreateMultiChatGroupRoom(name: String?) {
         try {
             multiUserJid = JidCreate.entityBareFrom("$name@conference.natchatserver")
@@ -208,20 +213,24 @@ class XMPP {
                     if (forwarded.get(index).forwardedStanza is Message) {
                         val msg: Message = forwarded.get(index) as Message
                         Log.d(TAG, "onCreate: $msg")
-                        Log.d(TAG, "processStanza: " + msg.from + " Say：" + msg.body + " String length：" + (msg.body != null ?: msg.body.length ?: ""))
-                        var chatMessage = if (XmppStringUtils.parseBareJid(msg.from.toString()) == userSendTo) {
-                            ChatMessage(
-                                msg.body,
-                                forwarded.get(index).delayInformation.stamp.time,
-                                ChatMessage.Type.RECEIVED
-                            )
-                        } else {
-                            ChatMessage(
-                                msg.body,
-                                forwarded.get(index).delayInformation.stamp.time,
-                                ChatMessage.Type.SENT
-                            )
-                        }
+                        Log.d(
+                            TAG,
+                            "processStanza: " + msg.from + " Say：" + msg.body + " String length：" + (msg.body != null ?: msg.body.length ?: "")
+                        )
+                        var chatMessage =
+                            if (XmppStringUtils.parseBareJid(msg.from.toString()) == userSendTo) {
+                                ChatMessage(
+                                    msg.body,
+                                    forwarded.get(index).delayInformation.stamp.time,
+                                    ChatMessage.Type.RECEIVED
+                                )
+                            } else {
+                                ChatMessage(
+                                    msg.body,
+                                    forwarded.get(index).delayInformation.stamp.time,
+                                    ChatMessage.Type.SENT
+                                )
+                            }
                         chatMessageList.add(chatMessage)
                     }
                 }
@@ -259,5 +268,30 @@ class XMPP {
         return null
     }
 
+    fun getHistory(): Message? {
+        try {
+            val manager: MamManager = MamManager.getInstanceFor(connection)
+            val jid1 = JidCreate.bareFrom("kia.puk@natchatserver/Android")
+            val jid2 = JidCreate.bareFrom("nonnyzcsrt@enatchatserver/Android")
+            val jidList = listOf<BareJid>(jid1, jid2)
+            for (index in jidList.indices) {
+                val mamQueryArgs = MamManager.MamQueryArgs.builder()
+                    .setResultPageSize(1).limitResultsToJid(jidList.get(index))
+                    .queryLastPage().build()
+                val mamQuery: MamManager.MamQuery = manager.queryArchive(mamQueryArgs)
+
+            }
+//            val r  : MamManager.MamQueryResult = manager.mostRecentPage(multiUserJid, 100)
+//            if (r.forwardedMessages.size >= 1) //printing first of them
+//            {
+//                val message : Message = r.forwardedMessages.get(0).forwardedStanza as Message
+//                Log.d("mam", "message received" + message.body)
+//                return message
+//            }
+        } catch (e: Exception) {
+            Log.d("app error history", e.toString())
+        }
+        return null
+    }
 
 }
