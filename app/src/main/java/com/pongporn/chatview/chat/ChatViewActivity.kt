@@ -13,7 +13,9 @@ import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.pongporn.chatview.R
 import com.pongporn.chatview.userlist.UserListModel
 import com.pongporn.chatview.utils.XMPP
+import com.pongporn.chatview.utils.convertMillisToMinutes
 import com.pongporn.chatview.utils.convertMillisToMinutesAndSecond
+import com.pongporn.chatview.utils.convertMillisToSecond
 import com.pongporn.chatview.viewmodel.ChatViewModel
 import kotlinx.android.synthetic.main.activity_chat_view.*
 import org.koin.android.ext.android.inject
@@ -23,7 +25,7 @@ class ChatViewActivity : AppCompatActivity() {
 
     companion object {
         const val USER_NAME = "user_name"
-        const val VIDEO_ID = "TPvW6mIB8Yc"
+        const val VIDEO_ID = "Z8NdLhqYk_A"
         const val YOUTUBE_API_KEY = "AIzaSyAAvHB1OGvfLpgwLVvKMY3Li58g4XtGZGk"
     }
 
@@ -44,6 +46,8 @@ class ChatViewActivity : AppCompatActivity() {
         if (userList?.isGroup == true) {
             xmpp.onCreateMultiChatGroupRoom(userList?.name)
             xmpp.onJoinMultiChatGroupRoom()
+            val sss = xmpp.getHistory()
+            println("Message History : $sss")
         }
         initObserver()
         initListener()
@@ -64,55 +68,65 @@ class ChatViewActivity : AppCompatActivity() {
                 youTubePlayer?.loadVideo(VIDEO_ID)
                 youTubePlayer?.setOnFullscreenListener(youtubePlayerFillScreen)
 
-                youTubePlayer?.setPlaybackEventListener(object : YouTubePlayer.PlaybackEventListener{
+                youTubePlayer?.setPlaybackEventListener(object :
+                    YouTubePlayer.PlaybackEventListener {
                     override fun onSeekTo(newPositionMillis: Int) {
-                        Log.d("youtube","onSeekTo $newPositionMillis")
+                        Log.d("youtube", "onSeekTo $newPositionMillis")
+                        viewModel.updateStartTime(newPositionMillis.convertMillisToSecond(),youTubePlayer.durationMillis.convertMillisToSecond())
                     }
 
                     override fun onBuffering(isBuffering: Boolean) {
-                        Log.d("youtube","onBuffering $isBuffering")
+                        Log.d("youtube", "onBuffering $isBuffering")
                     }
 
                     override fun onPlaying() {
-                        Log.d("youtube","onPlaying")
+                        Log.d("youtube", "onPlaying")
+                        val duraMinute = youTubePlayer.durationMillis.convertMillisToMinutesAndSecond()
+                        val currentMinute = youTubePlayer.currentTimeMillis.convertMillisToMinutesAndSecond()
+                        if (viewModel.disposable == null) {
+                            viewModel.getCountTime(
+                                youTubePlayer.currentTimeMillis.convertMillisToSecond(),
+                                youTubePlayer.durationMillis.convertMillisToSecond()
+                            )
+                        }
                     }
 
                     override fun onStopped() {
-                        Log.d("youtube","onStopped")
+                        Log.d("youtube", "onStopped")
                     }
 
                     override fun onPaused() {
-                        Log.d("youtube","onPaused")
+                        Log.d("youtube", "onPaused")
                     }
                 })
 
-                youTubePlayer?.setPlayerStateChangeListener(object : YouTubePlayer.PlayerStateChangeListener{
+                youTubePlayer?.setPlayerStateChangeListener(object :
+                    YouTubePlayer.PlayerStateChangeListener {
                     override fun onAdStarted() {
-                        Log.d("youtube","onAdStarted")
+                        Log.d("youtube", "onAdStarted")
 
                     }
 
                     override fun onLoading() {
-                        Log.d("youtube","onLoading")
+                        Log.d("youtube", "onLoading")
 
                     }
 
                     override fun onVideoStarted() {
-                        Log.d("youtube","onVideoStarted")
-
+                        Log.d("youtube", "onVideoStarted")
                     }
 
                     override fun onLoaded(p0: String?) {
-                        Log.d("youtube","onLoaded $p0")
+                        Log.d("youtube", "onLoaded $p0")
 
                     }
 
                     override fun onVideoEnded() {
-                        Log.d("youtube","onVideoEnded")
+                        Log.d("youtube", "onVideoEnded")
                     }
 
                     override fun onError(error: YouTubePlayer.ErrorReason?) {
-                        Log.d("youtube","onError $error")
+                        Log.d("youtube", "onError $error")
                     }
 
                 })

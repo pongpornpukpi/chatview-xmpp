@@ -8,16 +8,24 @@ import androidx.lifecycle.viewModelScope
 import com.pongporn.chatview.utils.XMPP
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
 import org.jivesoftware.smack.chat2.ChatManager
+import org.reactivestreams.Subscription
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
 class ChatViewModel constructor(var xmpp: XMPP) : ViewModel(), CoroutineScope {
 
     private val job = Job()
-    private var disposable: Disposable? = null
+    val compositeDis by lazyOf(CompositeDisposable())
+    var disposable: Disposable? = null
+    var startTime : Int = 0
+    var endTime : Int = 0
+    var isFirst = true
+
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
@@ -63,25 +71,38 @@ class ChatViewModel constructor(var xmpp: XMPP) : ViewModel(), CoroutineScope {
 
     fun getmessage(): LiveData<String> = messageliveData
 
-    fun getCountTime(startTime: Long, endTime: Long) {
-        viewModelScope.launch {
-            countTime(startTime, endTime)
-        }
+    fun getCountTime(startTime: Int, endTime: Int) {
+        this.startTime = startTime
+        this.endTime = endTime
+        countTime()
     }
 
-    private suspend fun countTime(startTime: Long, endTime: Long) {
-        withContext(Dispatchers.IO) {
-            disposable = Observable.interval(startTime, endTime, TimeUnit.SECONDS).timeInterval()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
+    fun updateStartTime(startTime: Int,endTime: Int) {
+        this.isFirst = false
+        this.startTime = startTime
+        this.endTime = endTime
+    }
 
+    private fun countTime() {
+        disposable = Observable.interval(0, 1, TimeUnit.SECONDS)
+            .timeInterval()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                if (startTime <= endTime) {
+                    startTime++
+                    Log.d("app Time Start!", startTime.toString())
+                    Log.d("app Time End!", endTime.toString())
                 }
-        }
+
+            }
+        compositeDis.add(disposable!!)
     }
 
     override fun onCleared() {
         super.onCleared()
         job.cancel()
+        disposable?.dispose()
     }
 
 }
