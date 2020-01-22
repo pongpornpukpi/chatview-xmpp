@@ -147,10 +147,6 @@ class XMPP {
         }
     }
 
-    fun getXMPPFullJID() {
-
-    }
-
     fun onCreateMultiChatGroupRoom(name: String?) {
         try {
             multiUserJid = JidCreate.entityBareFrom("$name@conference.natchatserver")
@@ -158,13 +154,9 @@ class XMPP {
             multiUserManager = MultiUserChatManager.getInstanceFor(connection)
             multiUserChat = multiUserManager?.getMultiUserChat(multiUserJid)
 
-            val owners =
-                JidUtil.jidSetFrom(arrayOf("kia.puk@natchatserver", "nonnyzcsrt@enatchatserver"))
+//            val owners = JidUtil.jidSetFrom(arrayOf("kia.puk@natchatserver", "nonnyzcsrt@enatchatserver"))
 
             multiUserChat?.create(nickname)?.makeInstant()
-//                ?.configFormManager
-//                ?.setRoomOwners(owners)
-//                ?.submitConfigurationForm()
         } catch (e: Exception) {
             Toast.makeText(mContext, "app create : create Error.", Toast.LENGTH_SHORT).show()
             Log.d("app create", e.toString())
@@ -199,99 +191,6 @@ class XMPP {
             Log.d("app Join", e.toString())
         }
 
-    }
-
-    fun getChatHistoryWithJID(jid: String, maxResults: Int): List<ChatMessage> {
-        val chatMessageList: ArrayList<ChatMessage> = arrayListOf()
-        val mamQueryResult: MamManager.MamQueryResult? = getArchivedMessages(jid, maxResults)
-        val userSendTo: String = XmppStringUtils.parseBareJid(jid)
-        val forwarded = mamQueryResult?.forwardedMessages
-
-        try {
-            if (mamQueryResult != null && userSendTo != null) {
-                for (index in 0 until forwarded!!.size) {
-                    if (forwarded.get(index).forwardedStanza is Message) {
-                        val msg: Message = forwarded.get(index) as Message
-                        Log.d(TAG, "onCreate: $msg")
-                        Log.d(
-                            TAG,
-                            "processStanza: " + msg.from + " Say：" + msg.body + " String length：" + (msg.body != null ?: msg.body.length ?: "")
-                        )
-                        var chatMessage =
-                            if (XmppStringUtils.parseBareJid(msg.from.toString()) == userSendTo) {
-                                ChatMessage(
-                                    msg.body,
-                                    forwarded.get(index).delayInformation.stamp.time,
-                                    ChatMessage.Type.RECEIVED
-                                )
-                            } else {
-                                ChatMessage(
-                                    msg.body,
-                                    forwarded.get(index).delayInformation.stamp.time,
-                                    ChatMessage.Type.SENT
-                                )
-                            }
-                        chatMessageList.add(chatMessage)
-                    }
-                }
-            } else {
-                return chatMessageList
-            }
-            return chatMessageList
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return chatMessageList
-    }
-
-    private fun getArchivedMessages(jid: String, maxResult: Int): MamManager.MamQueryResult? {
-        val mamManager = MamManager.getInstanceFor(connection)
-        try {
-            val form = DataForm(DataForm.Type.submit)
-            val field = FormField(FormField.FORM_TYPE)
-            field.type = FormField.Type.hidden
-            field.addValue(MamElements.NAMESPACE)
-            form.addField(field)
-
-            val formField = FormField("with")
-            formField.addValue(jid)
-            form.addField(formField)
-
-            val rsmSet = RSMSet(maxResult, "", RSMSet.PageDirection.before)
-            val mamQueryResult = mamManager.page(form, rsmSet)
-
-            return mamQueryResult
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Log.d("app history", "$e")
-        }
-        return null
-    }
-
-    fun getHistory(): Message? {
-        try {
-            val manager: MamManager = MamManager.getInstanceFor(connection)
-            val jid1 = JidCreate.bareFrom("kia.puk@natchatserver/Android")
-            val jid2 = JidCreate.bareFrom("nonnyzcsrt@enatchatserver/Android")
-            val jidList = listOf<BareJid>(jid1, jid2)
-            for (index in jidList.indices) {
-                val mamQueryArgs = MamManager.MamQueryArgs.builder()
-                    .setResultPageSize(1).limitResultsToJid(jidList.get(index))
-                    .queryLastPage().build()
-                val mamQuery: MamManager.MamQuery = manager.queryArchive(mamQueryArgs)
-
-            }
-//            val r  : MamManager.MamQueryResult = manager.mostRecentPage(multiUserJid, 100)
-//            if (r.forwardedMessages.size >= 1) //printing first of them
-//            {
-//                val message : Message = r.forwardedMessages.get(0).forwardedStanza as Message
-//                Log.d("mam", "message received" + message.body)
-//                return message
-//            }
-        } catch (e: Exception) {
-            Log.d("app error history", e.toString())
-        }
-        return null
     }
 
 }

@@ -35,6 +35,7 @@ class ChatViewActivity : AppCompatActivity() {
 
     private var userList: UserListModel? = null
     private var chatList = mutableListOf<String>()
+    private var newPositionMillis : Int = 0
 
     lateinit var youTubePlayerInit: YouTubePlayer.OnInitializedListener
     lateinit var youtubePlayerFillScreen: YouTubePlayer.OnFullscreenListener
@@ -46,8 +47,6 @@ class ChatViewActivity : AppCompatActivity() {
         if (userList?.isGroup == true) {
             xmpp.onCreateMultiChatGroupRoom(userList?.name)
             xmpp.onJoinMultiChatGroupRoom()
-            val sss = xmpp.getHistory()
-            println("Message History : $sss")
         }
         initObserver()
         initListener()
@@ -72,7 +71,7 @@ class ChatViewActivity : AppCompatActivity() {
                     YouTubePlayer.PlaybackEventListener {
                     override fun onSeekTo(newPositionMillis: Int) {
                         Log.d("youtube", "onSeekTo $newPositionMillis")
-                        viewModel.updateStartTime(newPositionMillis.convertMillisToSecond(),youTubePlayer.durationMillis.convertMillisToSecond())
+                        this@ChatViewActivity.newPositionMillis = newPositionMillis
                     }
 
                     override fun onBuffering(isBuffering: Boolean) {
@@ -88,6 +87,8 @@ class ChatViewActivity : AppCompatActivity() {
                                 youTubePlayer.currentTimeMillis.convertMillisToSecond(),
                                 youTubePlayer.durationMillis.convertMillisToSecond()
                             )
+                        } else {
+                            viewModel.updateStartTime(newPositionMillis.convertMillisToSecond(),youTubePlayer.durationMillis.convertMillisToSecond())
                         }
                     }
 
