@@ -1,5 +1,6 @@
 package com.pongporn.chatview.viewmodel
 
+import android.text.format.DateFormat
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -11,6 +12,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.*
 import org.jivesoftware.smack.chat2.ChatManager
+import org.jivesoftware.smack.packet.Message
+import org.jivesoftware.smackx.delay.packet.DelayInformation
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
@@ -33,6 +36,7 @@ class ChatViewModel constructor(var xmpp: XMPP) : ViewModel(), CoroutineScope {
         withContext(Dispatchers.IO) {
             xmpp.multiUserChat?.addMessageListener { message ->
                 Log.d("app message Multi", message?.body ?: "null")
+                Log.d("app message Multi Time", getChatTimestamp(message))
                 val fromMessage = message.from.resourceOrEmpty
                 if (message.body != null) {
                     messageliveData.postValue("$fromMessage : ${message.body}")
@@ -82,6 +86,24 @@ class ChatViewModel constructor(var xmpp: XMPP) : ViewModel(), CoroutineScope {
     override fun onCleared() {
         super.onCleared()
         job.cancel()
+    }
+
+    private fun convertTimeMilliToString(dateInMilliseconds: Long): String {
+        val dateFormat = "HH:mm"
+        return DateFormat.format(dateFormat, dateInMilliseconds)
+            .toString()
+    }
+
+    private fun getChatTimestamp(message: Message): String {
+        val msg = message
+        val ts: Long
+        var timestamp: DelayInformation? = msg.getExtension("delay", "urn:xmpp:delay")
+        if (timestamp == null)
+            timestamp = msg.getExtension("x", "jabber:x:delay")
+
+        ts = timestamp?.stamp?.time ?: System.currentTimeMillis()
+
+        return convertTimeMilliToString(ts)
     }
 
 }
