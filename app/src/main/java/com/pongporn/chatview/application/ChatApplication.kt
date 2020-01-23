@@ -4,6 +4,7 @@ import android.app.Application
 import com.mohamadamin.kpreferences.base.KPreferenceManager
 import com.pongporn.chatview.di.provideChatModule
 import com.pongporn.chatview.di.provideDatabase
+import com.pongporn.chatview.di.provideHttpModule
 import com.pongporn.chatview.di.provideUIModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidFileProperties
@@ -23,7 +24,8 @@ class ChatApplication : Application() {
                 listOf(
                     provideChatModule(),
                     provideUIModule(),
-                    provideDatabase()
+                    provideDatabase(),
+                    provideHttpModule()
                 )
             )
         }

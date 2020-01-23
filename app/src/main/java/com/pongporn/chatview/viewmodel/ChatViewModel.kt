@@ -1,6 +1,5 @@
 package com.pongporn.chatview.viewmodel
 
-import android.text.format.DateFormat
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -8,10 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pongporn.chatview.database.ChatDatabase
 import com.pongporn.chatview.database.entity.HistoryChatEntity
-import com.pongporn.chatview.utils.PreferenceUtils
-import com.pongporn.chatview.utils.XMPP
-import com.pongporn.chatview.utils.convertTimeMilliToString
-import com.pongporn.chatview.utils.getChatTimestamp
+import com.pongporn.chatview.http.api.YoutubeApi
+import com.pongporn.chatview.http.response.VideoDataResponseModel
+import com.pongporn.chatview.utils.*
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -20,17 +18,15 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
 import org.jivesoftware.smack.MessageListener
 import org.jivesoftware.smack.chat2.ChatManager
-import org.reactivestreams.Subscription
 import org.jivesoftware.smack.packet.Message
-import org.jivesoftware.smackx.delay.packet.DelayInformation
-import org.jivesoftware.smackx.mam.MamManager
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
 class ChatViewModel constructor(
     var xmpp: XMPP,
     var chatDatabase: ChatDatabase,
-    var pref: PreferenceUtils
+    var pref: PreferenceUtils,
+    var youtubeApi: YoutubeApi
 ) : ViewModel(),
     CoroutineScope {
 
@@ -45,6 +41,7 @@ class ChatViewModel constructor(
         get() = job + Dispatchers.Main
 
     private val messageliveData: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+    private val videoData: MutableLiveData<VideoDataResponseModel> by lazy { MutableLiveData<VideoDataResponseModel>() }
 
     fun addlistenerMulti() {
         viewModelScope.launch {
@@ -71,20 +68,6 @@ class ChatViewModel constructor(
             }
 
             xmpp.multiUserChat?.addMessageListener(listenerMessage)
-
-//              val listenerMessage = xmpp.multiUserChat?.addMessageListener { message ->
-//                    Log.d("app message Multi", message?.body ?: "null")
-//                    Log.d("app message Multi Time", message.getChatTimestamp())
-//                    val fromMessage = message?.from?.resourceOrEmpty
-//                    if (message?.body != null) {
-//                        val his = HistoryChatEntity()
-//                        his.timeStamp = message.getChatTimestamp()
-//                        his.fromTo = fromMessage.toString()
-//                        his.message = message.body
-//                        chatDatabase.historyChatDao().insertHistoryChat(his)
-//                        messageliveData.postValue(message.body)
-//                    }
-//                }
         }
     }
 
@@ -109,6 +92,7 @@ class ChatViewModel constructor(
     }
 
     fun getmessage(): LiveData<String> = messageliveData
+    fun getVideoData(): LiveData<VideoDataResponseModel> = videoData
 
     fun getCountTime(startTime: Int, endTime: Int) {
         this.startTime = startTime
@@ -129,16 +113,25 @@ class ChatViewModel constructor(
             .subscribe {
                 if (startTime <= endTime) {
                     startTime++
-                    Log.d("app Time Start!", startTime.toString())
-                    Log.d("app Time End!", endTime.toString())
+                    Log.d("app Time Start!", "${startTime}")
+                    Log.d("app Time End!", "${endTime}")
                 }
             }
         compositeDis.add(disposable!!)
     }
 
+    fun getVideoDataRequest(id: String, key: String, part: String) {
+        compositeDis.add(youtubeApi.getViedoDisplay(id, key, part).subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                videoData.postValue(it)
+            })
+    }
+
     override fun onCleared() {
         super.onCleared()
         job.cancel()
+        compositeDis.dispose()
         disposable?.dispose()
     }
 

@@ -25,5 +25,5 @@ fun provideUIModule() = module {
     factory { MainActivity() }
     factory { ChatViewActivity() }
     factory { UserListActivity() }
-    viewModel { ChatViewModel(get(),get(),get()) }
+    viewModel { ChatViewModel(get(),get(),get(),get()) }
 }

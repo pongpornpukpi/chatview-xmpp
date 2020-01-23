@@ -1,6 +1,7 @@
 package com.pongporn.chatview.chat
 
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -13,6 +14,7 @@ import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.pongporn.chatview.R
 import com.pongporn.chatview.database.ChatDatabase
 import com.pongporn.chatview.database.entity.HistoryChatEntity
+import com.pongporn.chatview.http.response.VideoDataResponseModel
 import com.pongporn.chatview.userlist.UserListModel
 import com.pongporn.chatview.utils.XMPP
 import com.pongporn.chatview.utils.convertMillisToMinutes
@@ -27,7 +29,8 @@ class ChatViewActivity : AppCompatActivity() {
 
     companion object {
         const val USER_NAME = "user_name"
-        const val VIDEO_ID = "Z8NdLhqYk_A"
+        const val VIDEO_ID = "Sa2rsOxEtIA"
+        //        Sa2rsOxEtIA,Z8NdLhqYk_A
         const val YOUTUBE_API_KEY = "AIzaSyAAvHB1OGvfLpgwLVvKMY3Li58g4XtGZGk"
     }
 
@@ -79,7 +82,7 @@ class ChatViewActivity : AppCompatActivity() {
                     YouTubePlayer.PlaybackEventListener {
                     override fun onSeekTo(newPositionMillis: Int) {
                         Log.d("youtube", "onSeekTo $newPositionMillis")
-                        this@ChatViewActivity.newPositionMillis = newPositionMillis
+//                        this@ChatViewActivity.newPositionMillis = newPositionMillis
                     }
 
                     override fun onBuffering(isBuffering: Boolean) {
@@ -88,6 +91,7 @@ class ChatViewActivity : AppCompatActivity() {
 
                     override fun onPlaying() {
                         Log.d("youtube", "onPlaying")
+                        newPositionMillis = youTubePlayer.currentTimeMillis.convertMillisToSecond()
                         val duraMinute =
                             youTubePlayer.durationMillis.convertMillisToMinutesAndSecond()
                         val currentMinute =
@@ -99,7 +103,7 @@ class ChatViewActivity : AppCompatActivity() {
                             )
                         } else {
                             viewModel.updateStartTime(
-                                newPositionMillis.convertMillisToSecond(),
+                                newPositionMillis,
                                 youTubePlayer.durationMillis.convertMillisToSecond()
                             )
                         }
@@ -111,8 +115,7 @@ class ChatViewActivity : AppCompatActivity() {
 
                     override fun onPaused() {
                         Log.d("youtube", "onPaused")
-                        this@ChatViewActivity.newPositionMillis =
-                            youTubePlayer.currentTimeMillis.convertMillisToSecond()
+                        newPositionMillis = youTubePlayer.currentTimeMillis.convertMillisToSecond()
                     }
                 })
 
@@ -184,6 +187,11 @@ class ChatViewActivity : AppCompatActivity() {
                 chatAdapter.addlist(chatList)
             }
         })
+        viewModel.getVideoData().observe(this, Observer<VideoDataResponseModel> {
+            println("VideoDataResponse : $it")
+        })
+
+        viewModel.getVideoDataRequest(id = VIDEO_ID, key = YOUTUBE_API_KEY, part = "snippet")
     }
 
     private fun initView() {
