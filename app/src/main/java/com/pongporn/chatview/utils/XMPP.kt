@@ -6,7 +6,10 @@ import android.util.Log
 import android.widget.Toast
 import co.intentservice.chatui.models.ChatMessage
 import com.pongporn.chatview.chat.ChatViewAdapter
+import com.pongporn.chatview.database.ChatDatabase
+import com.pongporn.chatview.database.entity.HistoryChatEntity
 import org.jivesoftware.smack.ConnectionConfiguration
+import org.jivesoftware.smack.MessageListener
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration
@@ -111,6 +114,7 @@ class XMPP {
     var multiUserJid: EntityBareJid? = null
     var multiUserChat: MultiUserChat? = null
     var nickname: Resourcepart? = null
+    var listenerMessage: MessageListener? = null
 
     fun sendMessage(body: String, toJid: String) {
         Log.d("app", "Sending message to :$toJid")
@@ -168,10 +172,31 @@ class XMPP {
         return multiUserChat?.isJoined
     }
 
-    fun leaveChatRoom() {
+    fun chatMessageListener(): Message? {
+        var messageList: Message? = null
+        try {
+            listenerMessage = object : MessageListener {
+                override fun processMessage(message: Message?) {
+                    Log.d("app message Multi", message?.body ?: "null")
+                    Log.d("app message Multi Time", message?.getChatTimestamp())
+                    if (message?.body != null) {
+                        messageList = message
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Toast.makeText(mContext, "app leave : leave Error.", Toast.LENGTH_SHORT).show()
+            Log.d("app leave", e.toString())
+        }
+        return messageList
+    }
+
+    fun leaveChatRoom(listenerMessage : MessageListener?) {
         try {
             if (isJoined() == true) multiUserChat?.leave()
+            val sss = multiUserChat?.removeMessageListener(listenerMessage)
             Toast.makeText(mContext, "app leave : leave Room Success.", Toast.LENGTH_SHORT).show()
+            Log.d("app leave", sss.toString())
             Log.d("app leave", multiUserChat?.isJoined.toString())
         } catch (e: Exception) {
             Toast.makeText(mContext, "app leave : leave Error.", Toast.LENGTH_SHORT).show()

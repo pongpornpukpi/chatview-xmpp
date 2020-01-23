@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pongporn.chatview.R
+import com.pongporn.chatview.utils.PreferenceUtils
 import com.pongporn.chatview.utils.XMPP
 import kotlinx.android.synthetic.main.activity_user_list.*
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
@@ -26,6 +27,7 @@ class UserListActivity : AppCompatActivity() {
             UserListModel(name = "nonnyzcsrt", isGroup = false)
         )
     private val xmpp: XMPP by inject()
+    private val preferenceUtils : PreferenceUtils by inject()
     //    "kia.puk","nonnyzcsrt"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +43,7 @@ class UserListActivity : AppCompatActivity() {
         button2.setOnClickListener {
             if (xmpp.isConnect()) {
                 xmpp.logOut()
+                preferenceUtils.isFirst = false
                 finish()
             } else {
                 finish()
@@ -59,6 +62,13 @@ class UserListActivity : AppCompatActivity() {
                 mAdapter.addlist(listname.get(index))
             }
         }
+    }
+
+    override fun onBackPressed() {
+        xmpp.logOut()
+        preferenceUtils.isFirst = false
+        super.onBackPressed()
+
     }
 
 }

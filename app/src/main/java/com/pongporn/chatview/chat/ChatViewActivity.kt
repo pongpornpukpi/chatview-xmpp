@@ -11,6 +11,8 @@ import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.pongporn.chatview.R
+import com.pongporn.chatview.database.ChatDatabase
+import com.pongporn.chatview.database.entity.HistoryChatEntity
 import com.pongporn.chatview.userlist.UserListModel
 import com.pongporn.chatview.utils.XMPP
 import com.pongporn.chatview.utils.convertMillisToMinutes
@@ -31,11 +33,12 @@ class ChatViewActivity : AppCompatActivity() {
 
     private val xmpp: XMPP by inject()
     private val viewModel: ChatViewModel by viewModel()
+    private val chatDatabase: ChatDatabase by inject()
     private val chatAdapter by lazy { ChatViewAdapter() }
 
     private var userList: UserListModel? = null
-    private var chatList = mutableListOf<String>()
-    private var newPositionMillis : Int = 0
+    private var chatList = mutableListOf<HistoryChatEntity>()
+    private var newPositionMillis: Int = 0
 
     lateinit var youTubePlayerInit: YouTubePlayer.OnInitializedListener
     lateinit var youtubePlayerFillScreen: YouTubePlayer.OnFullscreenListener
@@ -47,6 +50,11 @@ class ChatViewActivity : AppCompatActivity() {
         if (userList?.isGroup == true) {
             xmpp.onCreateMultiChatGroupRoom(userList?.name)
             xmpp.onJoinMultiChatGroupRoom()
+            if (xmpp.isJoined() == true) {
+                viewModel.addlistenerMulti()
+            }
+        } else {
+            viewModel.addlistenerOneOnOne()
         }
         initObserver()
         initListener()
@@ -80,15 +88,20 @@ class ChatViewActivity : AppCompatActivity() {
 
                     override fun onPlaying() {
                         Log.d("youtube", "onPlaying")
-                        val duraMinute = youTubePlayer.durationMillis.convertMillisToMinutesAndSecond()
-                        val currentMinute = youTubePlayer.currentTimeMillis.convertMillisToMinutesAndSecond()
+                        val duraMinute =
+                            youTubePlayer.durationMillis.convertMillisToMinutesAndSecond()
+                        val currentMinute =
+                            youTubePlayer.currentTimeMillis.convertMillisToMinutesAndSecond()
                         if (viewModel.disposable == null) {
                             viewModel.getCountTime(
                                 youTubePlayer.currentTimeMillis.convertMillisToSecond(),
                                 youTubePlayer.durationMillis.convertMillisToSecond()
                             )
                         } else {
-                            viewModel.updateStartTime(newPositionMillis.convertMillisToSecond(),youTubePlayer.durationMillis.convertMillisToSecond())
+                            viewModel.updateStartTime(
+                                newPositionMillis.convertMillisToSecond(),
+                                youTubePlayer.durationMillis.convertMillisToSecond()
+                            )
                         }
                     }
 
@@ -98,6 +111,8 @@ class ChatViewActivity : AppCompatActivity() {
 
                     override fun onPaused() {
                         Log.d("youtube", "onPaused")
+                        this@ChatViewActivity.newPositionMillis =
+                            youTubePlayer.currentTimeMillis.convertMillisToSecond()
                     }
                 })
 
@@ -148,10 +163,12 @@ class ChatViewActivity : AppCompatActivity() {
 
         btn_post.setOnClickListener {
             if (userList?.isGroup == true) {
-                xmpp.multiChatSendMessage(et_comment.text.toString())
+                chatDatabase.historyChatDao().deleteHistoryChat().run {
+                    xmpp.multiChatSendMessage(et_comment.text.toString())
+                }
             } else {
                 xmpp.sendMessage(et_comment.text.toString(), "${userList?.name}@natchatserver")
-                chatList.add("${userList?.name} : ${et_comment.text.toString()}")
+//                chatList.add("${userList?.name} : ${et_comment.text}")
                 chatAdapter.clearList()
                 chatAdapter.addlist(chatList)
             }
@@ -160,15 +177,13 @@ class ChatViewActivity : AppCompatActivity() {
 
     private fun initObserver() {
         viewModel.getmessage().observe(this, Observer<String> {
-            chatList.add(it)
-            chatAdapter.clearList()
-            chatAdapter.addlist(chatList)
+            chatDatabase.historyChatDao().getHisrotyChat().apply {
+                println("ListMessage : $this")
+                chatList.addAll(this)
+                chatAdapter.clearList()
+                chatAdapter.addlist(chatList)
+            }
         })
-        if (userList?.isGroup == true) {
-            viewModel.addlistenerMulti()
-        } else {
-            viewModel.addlistenerOneOnOne()
-        }
     }
 
     private fun initView() {
@@ -186,6 +201,6 @@ class ChatViewActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        xmpp.leaveChatRoom()
+        xmpp.leaveChatRoom(viewModel.listenerMessage)
     }
 }
