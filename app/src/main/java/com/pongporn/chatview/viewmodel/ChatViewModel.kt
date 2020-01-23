@@ -53,8 +53,8 @@ class ChatViewModel constructor(
         withContext(Dispatchers.IO) {
             listenerMessage = object : MessageListener {
                 override fun processMessage(message: Message?) {
-                    Log.d("app message Multi", message?.body ?: "null")
-                    Log.d("app message Multi Time", message?.getChatTimestamp())
+                    Log.d("appmessageMulti", message?.body ?: "null")
+                    Log.d("appmessageMultiTime", message?.getChatTimestamp())
                     val fromMessage = message?.from?.resourceOrEmpty
                     if (message?.body != null) {
                         val his = HistoryChatEntity()
@@ -83,7 +83,6 @@ class ChatViewModel constructor(
                 .addIncomingListener { from, message, chat ->
                     Log.d("app receiveMessage", "message.getBody() :" + message?.body)
                     Log.d("app receiveMessage", "message.getFrom() :" + message?.from)
-                    Log.d("app receiveMessage", "message :")
                     if (message.body != null) {
                         messageliveData.postValue("${message.from} : ${message.body}")
                     }
@@ -113,8 +112,8 @@ class ChatViewModel constructor(
             .subscribe {
                 if (startTime <= endTime) {
                     startTime++
-                    Log.d("app Time Start!", "${startTime}")
-                    Log.d("app Time End!", "${endTime}")
+                    Log.d("appTimeStart!", "${startTime} Second = ${startTime.convertSecondToMinutes()} Minute")
+                    Log.d("appTimeEnd!", "${endTime} Second = ${endTime.convertSecondToMinutes()} Minute")
                 }
             }
         compositeDis.add(disposable!!)

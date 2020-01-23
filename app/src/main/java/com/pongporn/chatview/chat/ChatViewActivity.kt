@@ -17,8 +17,7 @@ import com.pongporn.chatview.database.entity.HistoryChatEntity
 import com.pongporn.chatview.http.response.VideoDataResponseModel
 import com.pongporn.chatview.userlist.UserListModel
 import com.pongporn.chatview.utils.XMPP
-import com.pongporn.chatview.utils.convertMillisToMinutes
-import com.pongporn.chatview.utils.convertMillisToMinutesAndSecond
+import com.pongporn.chatview.utils.convertMillisToDataTime
 import com.pongporn.chatview.utils.convertMillisToSecond
 import com.pongporn.chatview.viewmodel.ChatViewModel
 import kotlinx.android.synthetic.main.activity_chat_view.*
@@ -91,11 +90,8 @@ class ChatViewActivity : AppCompatActivity() {
 
                     override fun onPlaying() {
                         Log.d("youtube", "onPlaying")
+                        println("TimeOver : ${youTubePlayer.currentTimeMillis.convertMillisToDataTime()}")
                         newPositionMillis = youTubePlayer.currentTimeMillis.convertMillisToSecond()
-                        val duraMinute =
-                            youTubePlayer.durationMillis.convertMillisToMinutesAndSecond()
-                        val currentMinute =
-                            youTubePlayer.currentTimeMillis.convertMillisToMinutesAndSecond()
                         if (viewModel.disposable == null) {
                             viewModel.getCountTime(
                                 youTubePlayer.currentTimeMillis.convertMillisToSecond(),
@@ -142,6 +138,11 @@ class ChatViewActivity : AppCompatActivity() {
 
                     override fun onVideoEnded() {
                         Log.d("youtube", "onVideoEnded")
+                        newPositionMillis = youTubePlayer.currentTimeMillis.convertMillisToSecond()
+                        viewModel.updateStartTime(
+                            newPositionMillis,
+                            youTubePlayer.durationMillis.convertMillisToSecond()
+                        )
                     }
 
                     override fun onError(error: YouTubePlayer.ErrorReason?) {

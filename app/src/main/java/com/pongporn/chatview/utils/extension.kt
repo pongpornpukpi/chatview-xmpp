@@ -3,14 +3,16 @@ package com.pongporn.chatview.utils
 import android.text.format.DateFormat
 import org.jivesoftware.smack.packet.Message
 import org.jivesoftware.smackx.delay.packet.DelayInformation
+import java.sql.Time
 import java.util.concurrent.TimeUnit
 
-fun Int.convertMillisToMinutesAndSecond() : ArrayList<Int> {
+fun Int.convertMillisToDataTime() : String {
     val milliseconds: Int = this
-    val minutes = milliseconds / 1000 / 60
-    val seconds = milliseconds / 1000 % 60
-    println("$milliseconds Milliseconds = $minutes minutes and $seconds seconds.")
-    return arrayListOf(minutes,seconds)
+    val second = milliseconds / 1000
+    val minute = second / 60
+    val hour = minute / 60
+    val str = "$hour:$minute:$second"
+    return str
 }
 
 fun Int.convertMillisToSecond() : Int {
@@ -18,9 +20,9 @@ fun Int.convertMillisToSecond() : Int {
     return TimeUnit.MILLISECONDS.toSeconds(milliseconds.toLong()).toInt()
 }
 
-fun Int.convertMillisToMinutes() : Int {
-    val milliseconds: Int = this
-    return TimeUnit.MILLISECONDS.toMinutes(milliseconds.toLong()).toInt()
+fun Int.convertSecondToMinutes() : Int {
+    val seconds : Int = this
+    return TimeUnit.SECONDS.toMinutes(seconds.toLong()).toInt()
 }
 
 fun Long.convertTimeMilliToString(): String {
