@@ -8,13 +8,11 @@ import kotlinx.android.synthetic.main.viewholder_user_list.view.*
 
 class UserListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    fun bindView(userListModel: UserListModel?) {
+    fun bindView(userListModel: UserListModel?, userListCallBack: (UserListModel?) -> Unit) {
         with(itemView) {
             tv_name.text = userListModel?.name ?: ""
             tv_name.setOnClickListener {
-                val intent = Intent(context, ChatViewActivity::class.java)
-                intent.putExtra(ChatViewActivity.USER_NAME,userListModel)
-                context.startActivity(intent)
+                userListCallBack(userListModel)
             }
         }
     }

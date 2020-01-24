@@ -19,6 +19,7 @@ import kotlinx.coroutines.*
 import org.jivesoftware.smack.MessageListener
 import org.jivesoftware.smack.chat2.ChatManager
 import org.jivesoftware.smack.packet.Message
+import java.lang.Exception
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
@@ -33,9 +34,14 @@ class ChatViewModel constructor(
     private val job = Job()
     val compositeDis by lazyOf(CompositeDisposable())
     var disposable: Disposable? = null
+    var disposableMessages: Disposable? = null
     var startTime: Int = 0
     var endTime: Int = 0
     var listenerMessage: MessageListener? = null
+    var messageList = MutableLiveData<List<Message>>()
+    var tempMessageList = listOf<Message>()
+    var uid : String? = null
+    var doMoreLoading : Boolean? = false
 
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
@@ -125,6 +131,48 @@ class ChatViewModel constructor(
             .subscribe {
                 videoData.postValue(it)
             })
+    }
+
+    fun loadHistory() {
+        disposableMessages = getObservableMessages()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ listOfMessages ->
+                tempMessageList = listOfMessages
+                for (index in 0 until tempMessageList.size) {
+                    println("appMam -> ${tempMessageList.size}")
+                    println("appMam -> initMam -> OnNext -> ${tempMessageList.get(index).body}")
+                }
+            }, { t ->
+                Log.e("appMam", "-> initMam -> onError ->", t)
+            }, {
+                messageList.value = tempMessageList
+            })
+    }
+
+    // number_of_messages_to_fetch it's a limit of messages to be fetched eg. 20.
+    private fun getObservableMessages(): Observable<List<Message>> {
+        return Observable.create<List<Message>> { source ->
+            try {
+                val mamQuery = xmpp.mamManager?.queryMostRecentPage(xmpp.multiUserJid, 99999)
+                if (mamQuery?.messageCount == 0 || mamQuery?.messageCount!! < 99999) {
+                    uid = ""
+                    doMoreLoading = false
+                } else {
+                    uid = mamQuery.mamResultExtensions?.get(0)?.id
+                    doMoreLoading = true
+                }
+                source.onNext(mamQuery.messages!!)
+
+            } catch (e: Exception) {
+                if (!xmpp.connection.isConnected) {
+                    source.onError(e)
+                } else {
+                    Log.e("ChatDetail", "Connection closed")
+                }
+            }
+            source.onComplete()
+        }
     }
 
     override fun onCleared() {

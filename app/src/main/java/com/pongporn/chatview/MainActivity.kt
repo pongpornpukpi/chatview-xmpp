@@ -65,19 +65,17 @@ class MainActivity : AppCompatActivity() {
             xmpp.XMPPConnect()
             xmpp.XMPPLogin()
 
+            return ""
+        }
+
+        override fun onPostExecute(result: String?) {
+            super.onPostExecute(result)
             if (xmpp.isAuthenticate()) {
                 val intent = Intent(context, UserListActivity::class.java)
                 intent.putExtra(UserListActivity.NAME_USER, name)
                 intent.putExtra(UserListActivity.NAME_ROOM,nameRoom)
                 context.startActivity(intent)
             }
-
-            return ""
-        }
-
-        override fun onPostExecute(result: String?) {
-            super.onPostExecute(result)
-
         }
 
         override fun onPreExecute() {

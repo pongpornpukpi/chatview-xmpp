@@ -3,6 +3,11 @@ package com.pongporn.chatview.utils
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.lifecycle.MutableLiveData
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import org.jivesoftware.smack.ConnectionConfiguration
 import org.jivesoftware.smack.MessageListener
 import org.jivesoftware.smack.XMPPConnection
@@ -20,7 +25,10 @@ import javax.net.ssl.HostnameVerifier
 import org.jivesoftware.smack.SmackException
 import org.jivesoftware.smack.chat2.ChatManager
 import org.jivesoftware.smack.packet.Message
+import org.jivesoftware.smackx.mam.MamManager
+import org.jivesoftware.smackx.muc.MucEnterConfiguration
 import org.jxmpp.stringprep.XmppStringprepException
+import java.util.*
 
 class XMPP {
 
@@ -101,6 +109,7 @@ class XMPP {
     var multiUserChat: MultiUserChat? = null
     var nickname: Resourcepart? = null
     var listenerMessage: MessageListener? = null
+    var mucEnterConfiguration : MucEnterConfiguration? = null
 
     fun sendMessage(body: String, toJid: String) {
         Log.d("app", "Sending message to :$toJid")
@@ -143,6 +152,9 @@ class XMPP {
             nickname = Resourcepart.from(xmppName)
             multiUserManager = MultiUserChatManager.getInstanceFor(connection)
             multiUserChat = multiUserManager?.getMultiUserChat(multiUserJid)
+            mucEnterConfiguration = multiUserChat?.getEnterConfigurationBuilder(nickname)
+                ?.requestNoHistory()
+                ?.build()
 
 //            val owners = JidUtil.jidSetFrom(arrayOf("kia.puk@natchatserver", "nonnyzcsrt@enatchatserver"))
 
@@ -192,7 +204,7 @@ class XMPP {
 
     fun onJoinMultiChatGroupRoom() {
         try {
-            multiUserChat?.join(nickname)
+            multiUserChat?.join(mucEnterConfiguration)
             if (isJoined() == true) {
                 Toast.makeText(mContext, "app Join : Join Room Success.", Toast.LENGTH_SHORT).show()
                 Log.d("app Join", "Join Room Success.")
@@ -202,6 +214,17 @@ class XMPP {
             Log.d("app Join", e.toString())
         }
 
+    }
+
+    var mamManager : MamManager? = null
+
+    fun initMam() {
+        // check the connection object
+        if (connection != null) {
+            //get the instance of MamManager
+            mamManager = MamManager.getInstanceFor(multiUserChat)
+            println("mamManager : ${mamManager?.isSupported}")
+        }
     }
 
 }

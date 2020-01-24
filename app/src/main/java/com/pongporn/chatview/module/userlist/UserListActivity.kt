@@ -1,10 +1,12 @@
 package com.pongporn.chatview.module.userlist
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pongporn.chatview.R
+import com.pongporn.chatview.module.chat.ChatViewActivity
 import com.pongporn.chatview.utils.PreferenceUtils
 import com.pongporn.chatview.utils.XMPP
 import kotlinx.android.synthetic.main.activity_user_list.*
@@ -19,7 +21,14 @@ class UserListActivity : AppCompatActivity() {
 
     private var userName: String? = ""
     private var nameRoom: String? = ""
-    private val mAdapter by lazy { UserListAdapter() }
+    private val mAdapter by lazy { UserListAdapter {userListModel -> userListCallBack(userListModel)} }
+
+    private fun userListCallBack(userListModel: UserListModel?){
+        val intent = Intent(this, ChatViewActivity::class.java)
+        intent.putExtra(ChatViewActivity.USER_NAME,userListModel)
+        startActivity(intent)
+    }
+
     private val listname =
         mutableListOf<UserListModel>(
             UserListModel(name = "kia.puk", isGroup = false),

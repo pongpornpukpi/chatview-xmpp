@@ -1,6 +1,7 @@
 package com.pongporn.chatview.module.chat
 
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -51,12 +52,14 @@ class ChatViewActivity : AppCompatActivity() {
         if (userList?.isGroup == true) {
             xmpp.onCreateMultiChatGroupRoom(userList?.name)
             xmpp.onJoinMultiChatGroupRoom()
+            xmpp.initMam()
             if (xmpp.isJoined() == true) {
                 viewModel.addlistenerMulti()
             }
         } else {
             viewModel.addlistenerOneOnOne()
         }
+        viewModel.loadHistory()
         initObserver()
         initListener()
         initView()
@@ -175,6 +178,7 @@ class ChatViewActivity : AppCompatActivity() {
                 chatAdapter.clearList()
                 chatAdapter.addlist(chatList)
             }
+            et_comment.setText("")
         }
     }
 

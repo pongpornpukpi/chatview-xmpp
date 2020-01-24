@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.pongporn.chatview.R
 
-class UserListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class UserListAdapter(private val userListCallBack : (UserListModel?) -> Unit) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var listItem = mutableListOf<UserListModel>()
 
@@ -21,7 +21,7 @@ class UserListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when(holder) {
             is UserListViewHolder -> {
-                holder.bindView(listItem.get(position))
+                holder.bindView(listItem.get(position),userListCallBack)
             }
         }
     }
