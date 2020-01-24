@@ -5,11 +5,9 @@ import android.content.Intent
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import com.google.android.material.snackbar.Snackbar
-import com.pongporn.chatview.userlist.UserListActivity
+import com.pongporn.chatview.module.userlist.UserListActivity
 import com.pongporn.chatview.utils.XMPP
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject

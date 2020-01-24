@@ -19,8 +19,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".userlist.UserListActivity" />
-        <activity android:name=".chat.ChatViewActivity" />
+        <activity android:name="com.pongporn.chatview.module.userlist.UserListActivity" />
+        <activity android:name="com.pongporn.chatview.module.chat.ChatViewActivity" />
     </application>
 
 </manifest>

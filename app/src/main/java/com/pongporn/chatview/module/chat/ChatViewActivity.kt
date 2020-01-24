@@ -1,7 +1,6 @@
-package com.pongporn.chatview.chat
+package com.pongporn.chatview.module.chat
 
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -15,7 +14,7 @@ import com.pongporn.chatview.R
 import com.pongporn.chatview.database.ChatDatabase
 import com.pongporn.chatview.database.entity.HistoryChatEntity
 import com.pongporn.chatview.http.response.VideoDataResponseModel
-import com.pongporn.chatview.userlist.UserListModel
+import com.pongporn.chatview.module.userlist.UserListModel
 import com.pongporn.chatview.utils.XMPP
 import com.pongporn.chatview.utils.convertMillisToDataTime
 import com.pongporn.chatview.utils.convertMillisToSecond

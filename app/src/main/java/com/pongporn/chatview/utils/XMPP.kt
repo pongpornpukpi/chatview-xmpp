@@ -1,13 +1,8 @@
 package com.pongporn.chatview.utils
 
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import co.intentservice.chatui.models.ChatMessage
-import com.pongporn.chatview.chat.ChatViewAdapter
-import com.pongporn.chatview.database.ChatDatabase
-import com.pongporn.chatview.database.entity.HistoryChatEntity
 import org.jivesoftware.smack.ConnectionConfiguration
 import org.jivesoftware.smack.MessageListener
 import org.jivesoftware.smack.XMPPConnection
@@ -22,19 +17,10 @@ import org.jxmpp.jid.parts.Resourcepart
 import java.lang.Exception
 import java.net.InetAddress
 import javax.net.ssl.HostnameVerifier
-import org.jxmpp.jid.util.JidUtil
 import org.jivesoftware.smack.SmackException
-import org.jivesoftware.smack.chat2.Chat
 import org.jivesoftware.smack.chat2.ChatManager
 import org.jivesoftware.smack.packet.Message
-import org.jivesoftware.smackx.mam.MamManager
-import org.jivesoftware.smackx.mam.element.MamElements
-import org.jivesoftware.smackx.rsm.packet.RSMSet
-import org.jivesoftware.smackx.xdata.FormField
-import org.jivesoftware.smackx.xdata.packet.DataForm
-import org.jxmpp.jid.BareJid
 import org.jxmpp.stringprep.XmppStringprepException
-import org.jxmpp.util.XmppStringUtils
 
 class XMPP {
 

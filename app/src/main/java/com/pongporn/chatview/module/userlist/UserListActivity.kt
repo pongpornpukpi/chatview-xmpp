@@ -1,4 +1,4 @@
-package com.pongporn.chatview.userlist
+package com.pongporn.chatview.module.userlist
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -8,7 +8,6 @@ import com.pongporn.chatview.R
 import com.pongporn.chatview.utils.PreferenceUtils
 import com.pongporn.chatview.utils.XMPP
 import kotlinx.android.synthetic.main.activity_user_list.*
-import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.koin.android.ext.android.inject
 
 class UserListActivity : AppCompatActivity() {

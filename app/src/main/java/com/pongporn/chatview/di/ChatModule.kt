@@ -1,9 +1,9 @@
 package com.pongporn.chatview.di
 
 import com.pongporn.chatview.MainActivity
-import com.pongporn.chatview.chat.ChatViewActivity
+import com.pongporn.chatview.module.chat.ChatViewActivity
 import com.pongporn.chatview.database.ChatDatabase
-import com.pongporn.chatview.userlist.UserListActivity
+import com.pongporn.chatview.module.userlist.UserListActivity
 import com.pongporn.chatview.utils.PreferenceUtils
 import com.pongporn.chatview.utils.XMPP
 import com.pongporn.chatview.viewmodel.ChatViewModel

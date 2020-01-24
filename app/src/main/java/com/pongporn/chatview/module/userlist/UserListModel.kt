@@ -1,8 +1,7 @@
-package com.pongporn.chatview.userlist
+package com.pongporn.chatview.module.userlist
 
 import android.os.Parcel
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
 
 
 data class UserListModel (

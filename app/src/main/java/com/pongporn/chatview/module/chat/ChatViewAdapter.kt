@@ -1,4 +1,4 @@
-package com.pongporn.chatview.chat
+package com.pongporn.chatview.module.chat
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

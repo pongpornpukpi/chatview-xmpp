@@ -1,4 +1,4 @@
-package com.pongporn.chatview.userlist
+package com.pongporn.chatview.module.userlist
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
