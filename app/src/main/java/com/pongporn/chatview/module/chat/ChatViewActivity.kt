@@ -45,10 +45,16 @@ class ChatViewActivity : AppCompatActivity() {
     lateinit var youTubePlayerInit: YouTubePlayer.OnInitializedListener
     lateinit var youtubePlayerFillScreen: YouTubePlayer.OnFullscreenListener
 
+    private var isUserScrolling = false
+    private var isListGoingUp = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_view)
         userList = intent.getParcelableExtra<UserListModel>(USER_NAME)
+        initObserver()
+        initListener()
+        initView()
         if (userList?.isGroup == true) {
             xmpp.onCreateMultiChatGroupRoom(userList?.name)
             xmpp.onJoinMultiChatGroupRoom()
@@ -59,10 +65,6 @@ class ChatViewActivity : AppCompatActivity() {
         } else {
             viewModel.addlistenerOneOnOne()
         }
-        viewModel.loadHistory()
-        initObserver()
-        initListener()
-        initView()
     }
 
     private fun initListener() {
@@ -174,7 +176,6 @@ class ChatViewActivity : AppCompatActivity() {
                 }
             } else {
                 xmpp.sendMessage(et_comment.text.toString(), "${userList?.name}@natchatserver")
-//                chatList.add("${userList?.name} : ${et_comment.text}")
                 chatAdapter.clearList()
                 chatAdapter.addlist(chatList)
             }
@@ -191,8 +192,19 @@ class ChatViewActivity : AppCompatActivity() {
                 chatAdapter.addlist(chatList)
             }
         })
+
         viewModel.getVideoData().observe(this, Observer<VideoDataResponseModel> {
-            println("VideoDataResponse : $it")
+            if (it.items?.get(0)?.snippet?.liveBroadcastContent.equals("none")) {
+                viewModel.loadHistory()
+            }
+        })
+
+        viewModel.getmessageHistory().observe(this, Observer<List<String>> {
+            chatDatabase.historyChatDao().getHisrotyChat().apply {
+                chatList.addAll(this)
+                chatAdapter.clearList()
+                chatAdapter.addlist(chatList)
+            }
         })
 
         viewModel.getVideoDataRequest(id = VIDEO_ID, key = YOUTUBE_API_KEY, part = "snippet")
@@ -202,6 +214,30 @@ class ChatViewActivity : AppCompatActivity() {
         recyclerview_chat.apply {
             layoutManager = LinearLayoutManager(this@ChatViewActivity, RecyclerView.VERTICAL, false)
             adapter = chatAdapter
+
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    if (isUserScrolling) {
+                        isListGoingUp = dy >= 0
+                    }
+                }
+
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    super.onScrollStateChanged(recyclerView, newState)
+                    if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                        isUserScrolling = true
+                        if (isListGoingUp) {
+                            if ((layoutManager as LinearLayoutManager).findLastCompletelyVisibleItemPosition() + 1 == recyclerView.adapter?.itemCount) {
+                                val handler = Handler()
+                                handler.postDelayed({
+                                    viewModel.getMoreMessages()
+                                }, 0)
+                            }
+                        }
+                    }
+                }
+            })
         }
 
         title = userList?.name
@@ -214,5 +250,6 @@ class ChatViewActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         xmpp.leaveChatRoom(viewModel.listenerMessage)
+        chatDatabase.historyChatDao().deleteHistoryChat()
     }
 }

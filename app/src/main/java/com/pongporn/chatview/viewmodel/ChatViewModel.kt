@@ -16,12 +16,19 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
+import okhttp3.Connection
 import org.jivesoftware.smack.MessageListener
 import org.jivesoftware.smack.chat2.ChatManager
 import org.jivesoftware.smack.packet.Message
+import org.jivesoftware.smackx.mam.MamManager
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
+import org.jivesoftware.smackx.mam.element.MamFinIQ
+import org.jivesoftware.smackx.forward.packet.Forwarded
+import org.jivesoftware.smackx.mam.MamManager.MamQueryResult
+
+
 
 class ChatViewModel constructor(
     var xmpp: XMPP,
@@ -38,16 +45,17 @@ class ChatViewModel constructor(
     var startTime: Int = 0
     var endTime: Int = 0
     var listenerMessage: MessageListener? = null
-    var messageList = MutableLiveData<List<Message>>()
     var tempMessageList = listOf<Message>()
-    var uid : String? = null
-    var doMoreLoading : Boolean? = false
+    var uid: String? = null
+    var doMoreLoading: Boolean? = false
+    private val listHistory = mutableListOf<String>()
 
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
     private val messageliveData: MutableLiveData<String> by lazy { MutableLiveData<String>() }
     private val videoData: MutableLiveData<VideoDataResponseModel> by lazy { MutableLiveData<VideoDataResponseModel>() }
+    private val messageHistoryList = MutableLiveData<List<String>>()
 
     fun addlistenerMulti() {
         viewModelScope.launch {
@@ -98,6 +106,7 @@ class ChatViewModel constructor(
 
     fun getmessage(): LiveData<String> = messageliveData
     fun getVideoData(): LiveData<VideoDataResponseModel> = videoData
+    fun getmessageHistory() : LiveData<List<String>> = messageHistoryList
 
     fun getCountTime(startTime: Int, endTime: Int) {
         this.startTime = startTime
@@ -118,8 +127,14 @@ class ChatViewModel constructor(
             .subscribe {
                 if (startTime <= endTime) {
                     startTime++
-                    Log.d("appTimeStart!", "${startTime} Second = ${startTime.convertSecondToMinutes()} Minute")
-                    Log.d("appTimeEnd!", "${endTime} Second = ${endTime.convertSecondToMinutes()} Minute")
+                    Log.d(
+                        "appTimeStart!",
+                        "${startTime} Second = ${startTime.convertSecondToMinutes()} Minute"
+                    )
+                    Log.d(
+                        "appTimeEnd!",
+                        "${endTime} Second = ${endTime.convertSecondToMinutes()} Minute"
+                    )
                 }
             }
         compositeDis.add(disposable!!)
@@ -134,19 +149,25 @@ class ChatViewModel constructor(
     }
 
     fun loadHistory() {
+
         disposableMessages = getObservableMessages()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ listOfMessages ->
                 tempMessageList = listOfMessages
                 for (index in 0 until tempMessageList.size) {
+                    val his = HistoryChatEntity()
+                    his.timeStamp = listOfMessages.get(index).getChatTimestamp()
+                    his.fromTo = listOfMessages.get(index).from.resourceOrEmpty.toString()
+                    his.message = listOfMessages.get(index).body
+                    chatDatabase.historyChatDao().insertHistoryChat(his)
                     println("appMam -> ${tempMessageList.size}")
                     println("appMam -> initMam -> OnNext -> ${tempMessageList.get(index).body}")
                 }
             }, { t ->
                 Log.e("appMam", "-> initMam -> onError ->", t)
             }, {
-                messageList.value = tempMessageList
+                messageHistoryList.value = listHistory
             })
     }
 
@@ -154,8 +175,8 @@ class ChatViewModel constructor(
     private fun getObservableMessages(): Observable<List<Message>> {
         return Observable.create<List<Message>> { source ->
             try {
-                val mamQuery = xmpp.mamManager?.queryMostRecentPage(xmpp.multiUserJid, 99999)
-                if (mamQuery?.messageCount == 0 || mamQuery?.messageCount!! < 99999) {
+                val mamQuery = xmpp.mamManager?.queryMostRecentPage(xmpp.multiUserJid, 6000)
+                if (mamQuery?.messageCount == 0 || mamQuery?.messageCount!! < 6000) {
                     uid = ""
                     doMoreLoading = false
                 } else {
@@ -166,6 +187,61 @@ class ChatViewModel constructor(
 
             } catch (e: Exception) {
                 if (!xmpp.connection.isConnected) {
+                    source.onError(e)
+                } else {
+                    Log.e("ChatDetail", "Connection closed")
+                }
+            }
+            source.onComplete()
+        }
+    }
+
+    fun getMoreMessages() {
+        if (doMoreLoading == true) {
+            val mamQueryArgs = MamManager.MamQueryArgs.builder()
+                .limitResultsToJid(xmpp.multiUserJid)
+                .beforeUid(uid)
+                .build()
+
+            disposableMessages = getObservableMoreMessages(mamQueryArgs)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ listOfMessages ->
+                    tempMessageList = listOfMessages
+                    chatDatabase.historyChatDao().deleteHistoryChat()
+                    for (index in 0 until tempMessageList.size) {
+                        listHistory.add(tempMessageList.get(index).body)
+                        val his = HistoryChatEntity()
+                        his.timeStamp = listOfMessages.get(index).getChatTimestamp()
+                        his.fromTo = listOfMessages.get(index).from.resourceOrEmpty.toString()
+                        his.message = listOfMessages.get(index).body
+                        chatDatabase.historyChatDao().insertHistoryChat(his)
+                        println("appMam -> initMam -> OnNext -> ${tempMessageList.get(index).body}")
+                    }
+                }, { t ->
+                    Log.v("message", "FailinitmamError")
+                    Log.e("message", "-> initMam -> onError ->", t)
+                }, {
+                    messageHistoryList.value = listHistory
+                })
+        }
+    }
+
+    private fun getObservableMoreMessages(mamQueryArgs: MamManager.MamQueryArgs): Observable<List<Message>> {
+        return Observable.create<List<Message>> { source ->
+            try {
+                val mamQuery = xmpp.mamManager?.queryArchive(mamQueryArgs)
+                if (mamQuery?.messageCount == 0 || mamQuery?.messageCount!! < 50) {
+                    uid = ""
+                    doMoreLoading = false
+                } else {
+                    uid = mamQuery.mamResultExtensions[0].id
+                    doMoreLoading = true
+                }
+                source.onNext(mamQuery.messages)
+            } catch (e: Exception) {
+                val connection = xmpp.connection
+                if (!connection.isConnected) {
                     source.onError(e)
                 } else {
                     Log.e("ChatDetail", "Connection closed")

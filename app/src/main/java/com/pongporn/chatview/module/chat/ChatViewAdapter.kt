@@ -39,4 +39,5 @@ class ChatViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         notifyDataSetChanged()
     }
 
+
 }
