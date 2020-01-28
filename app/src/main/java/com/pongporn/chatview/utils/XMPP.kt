@@ -27,6 +27,7 @@ import org.jivesoftware.smack.chat2.ChatManager
 import org.jivesoftware.smack.packet.Message
 import org.jivesoftware.smackx.mam.MamManager
 import org.jivesoftware.smackx.muc.MucEnterConfiguration
+import org.jxmpp.jid.util.JidUtil
 import org.jxmpp.stringprep.XmppStringprepException
 import java.util.*
 
@@ -156,9 +157,11 @@ class XMPP {
                 ?.requestNoHistory()
                 ?.build()
 
-//            val owners = JidUtil.jidSetFrom(arrayOf("kia.puk@natchatserver", "nonnyzcsrt@enatchatserver"))
+            val owners = JidUtil.jidSetFrom(arrayOf("kia.puk@natchatserver", "nonnyzcsrt@enatchatserver"))
 
-            multiUserChat?.create(nickname)?.makeInstant()
+            multiUserChat?.create(nickname)
+//                ?.configFormManager?.setRoomOwners(owners)?.submitConfigurationForm()
+            ?.makeInstant()
         } catch (e: Exception) {
             Toast.makeText(mContext, "app create : create Error.", Toast.LENGTH_SHORT).show()
             Log.d("app create", e.toString())
@@ -168,25 +171,6 @@ class XMPP {
 
     fun isJoined(): Boolean? {
         return multiUserChat?.isJoined
-    }
-
-    fun chatMessageListener(): Message? {
-        var messageList: Message? = null
-        try {
-            listenerMessage = object : MessageListener {
-                override fun processMessage(message: Message?) {
-                    Log.d("app message Multi", message?.body ?: "null")
-                    Log.d("app message Multi Time", message?.getChatTimestamp())
-                    if (message?.body != null) {
-                        messageList = message
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Toast.makeText(mContext, "app leave : leave Error.", Toast.LENGTH_SHORT).show()
-            Log.d("app leave", e.toString())
-        }
-        return messageList
     }
 
     fun leaveChatRoom(listenerMessage : MessageListener?) {

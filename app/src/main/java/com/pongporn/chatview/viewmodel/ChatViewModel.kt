@@ -175,8 +175,8 @@ class ChatViewModel constructor(
     private fun getObservableMessages(): Observable<List<Message>> {
         return Observable.create<List<Message>> { source ->
             try {
-                val mamQuery = xmpp.mamManager?.queryMostRecentPage(xmpp.multiUserJid, 6000)
-                if (mamQuery?.messageCount == 0 || mamQuery?.messageCount!! < 6000) {
+                val mamQuery = xmpp.mamManager?.queryMostRecentPage(xmpp.multiUserJid, 20)
+                if (mamQuery?.messageCount == 0 || mamQuery?.messageCount!! < 20) {
                     uid = ""
                     doMoreLoading = false
                 } else {
