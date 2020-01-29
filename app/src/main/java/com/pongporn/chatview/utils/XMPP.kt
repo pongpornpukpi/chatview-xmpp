@@ -134,8 +134,10 @@ class XMPP {
             val owners = JidUtil.jidSetFrom(arrayOf("kia.puk@natchatserver", "nonnyzcsrt@enatchatserver"))
 
             multiUserChat?.create(nickname)
-//                ?.configFormManager?.setRoomOwners(owners)?.submitConfigurationForm()
-            ?.makeInstant()
+//                ?.configFormManager
+//                ?.setRoomOwners(owners)
+//                ?.submitConfigurationForm()
+                ?.makeInstant()
         } catch (e: Exception) {
             Toast.makeText(mContext, "app create : create Error.", Toast.LENGTH_SHORT).show()
             Log.d("app create", e.toString())

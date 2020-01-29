@@ -189,6 +189,7 @@ class ChatViewActivity : AppCompatActivity() {
         })
 
         viewModel.getmessageHistory().observe(this, Observer<List<String>> {
+            chatList.clear()
             chatList.addAll(it)
             chatAdapter.clearList()
             chatAdapter.addlist(chatList)
