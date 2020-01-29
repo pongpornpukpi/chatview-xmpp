@@ -212,14 +212,14 @@ class ChatViewActivity : AppCompatActivity() {
 
     private fun initView() {
         recyclerview_chat.apply {
-            layoutManager = LinearLayoutManager(this@ChatViewActivity, RecyclerView.VERTICAL, false)
+            layoutManager = LinearLayoutManager(this@ChatViewActivity, RecyclerView.VERTICAL, true)
             adapter = chatAdapter
 
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
                     if (isUserScrolling) {
-                        isListGoingUp = dy >= 0
+                        isListGoingUp = dy <= 0
                     }
                 }
 
