@@ -38,8 +38,16 @@ class XMPP {
     lateinit var serviceName: DomainBareJid
     lateinit var verifier: HostnameVerifier
     lateinit var connection: XMPPConnection
-    var xmppName: String? = ""
     private var mContext: Context? = null
+
+    var xmppName: String? = ""
+    var multiUserManager: MultiUserChatManager? = null
+    var multiUserJid: EntityBareJid? = null
+    var multiUserChat: MultiUserChat? = null
+    var nickname: Resourcepart? = null
+    var listenerMessage: MessageListener? = null
+    var mucEnterConfiguration : MucEnterConfiguration? = null
+    var mamManager : MamManager? = null
 
     fun XMPPConnecttion(
         name: String?,
@@ -53,9 +61,6 @@ class XMPP {
         verifier = HostnameVerifier { p0, p1 ->
             return@HostnameVerifier false
         }
-
-//      .setUsernameAndPassword("kia.puk", "123456")
-//      .setUsernameAndPassword("nonnyzcsrt","04060406")
 
         config = XMPPTCPConnectionConfiguration.builder()
             .setUsernameAndPassword(name, password)
@@ -86,6 +91,15 @@ class XMPP {
         }
     }
 
+    fun initMam() {
+        // check the connection object
+        if (connection != null) {
+            //get the instance of MamManager
+            mamManager = MamManager.getInstanceFor(multiUserChat)
+            println("mamManager : ${mamManager?.isSupported}")
+        }
+    }
+
     fun logOut() {
         try {
             (connection as? XMPPTCPConnection)?.disconnect()
@@ -95,46 +109,6 @@ class XMPP {
             Toast.makeText(mContext, "app logOut : logOut Error.", Toast.LENGTH_SHORT).show()
             Log.d("app logOut", e.toString())
         }
-    }
-
-    fun isConnect(): Boolean {
-        return connection.isConnected
-    }
-
-    fun isAuthenticate(): Boolean {
-        return connection.isAuthenticated
-    }
-
-    var multiUserManager: MultiUserChatManager? = null
-    var multiUserJid: EntityBareJid? = null
-    var multiUserChat: MultiUserChat? = null
-    var nickname: Resourcepart? = null
-    var listenerMessage: MessageListener? = null
-    var mucEnterConfiguration : MucEnterConfiguration? = null
-
-    fun sendMessage(body: String, toJid: String) {
-        Log.d("app", "Sending message to :$toJid")
-        var jid: EntityBareJid? = null
-        val chatManager = ChatManager.getInstanceFor(connection)
-
-        try {
-            jid = JidCreate.entityBareFrom(toJid)
-        } catch (e: XmppStringprepException) {
-            e.printStackTrace()
-        }
-
-        val chat = chatManager.chatWith(jid)
-        try {
-            val message = Message(jid, Message.Type.chat)
-            message.body = body
-            chat.send(message)
-
-        } catch (e: SmackException.NotConnectedException) {
-            e.printStackTrace()
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        }
-
     }
 
     fun multiChatSendMessage(message: String) {
@@ -169,8 +143,18 @@ class XMPP {
 
     }
 
-    fun isJoined(): Boolean? {
-        return multiUserChat?.isJoined
+    fun onJoinMultiChatGroupRoom() {
+        try {
+            multiUserChat?.join(mucEnterConfiguration)
+            if (isJoined() == true) {
+                Toast.makeText(mContext, "app Join : Join Room Success.", Toast.LENGTH_SHORT).show()
+                Log.d("app Join", "Join Room Success.")
+            }
+        } catch (e: Exception) {
+            Toast.makeText(mContext, "app Join : Join Error.", Toast.LENGTH_SHORT).show()
+            Log.d("app Join", e.toString())
+        }
+
     }
 
     fun leaveChatRoom(listenerMessage : MessageListener?) {
@@ -186,29 +170,16 @@ class XMPP {
         }
     }
 
-    fun onJoinMultiChatGroupRoom() {
-        try {
-            multiUserChat?.join(mucEnterConfiguration)
-            if (isJoined() == true) {
-                Toast.makeText(mContext, "app Join : Join Room Success.", Toast.LENGTH_SHORT).show()
-                Log.d("app Join", "Join Room Success.")
-            }
-        } catch (e: Exception) {
-            Toast.makeText(mContext, "app Join : Join Error.", Toast.LENGTH_SHORT).show()
-            Log.d("app Join", e.toString())
-        }
-
+    fun isConnect(): Boolean {
+        return connection.isConnected
     }
 
-    var mamManager : MamManager? = null
+    fun isAuthenticate(): Boolean {
+        return connection.isAuthenticated
+    }
 
-    fun initMam() {
-        // check the connection object
-        if (connection != null) {
-            //get the instance of MamManager
-            mamManager = MamManager.getInstanceFor(multiUserChat)
-            println("mamManager : ${mamManager?.isSupported}")
-        }
+    fun isJoined(): Boolean? {
+        return multiUserChat?.isJoined
     }
 
 }

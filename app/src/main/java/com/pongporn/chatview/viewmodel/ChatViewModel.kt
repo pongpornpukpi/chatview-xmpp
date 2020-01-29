@@ -29,7 +29,6 @@ import org.jivesoftware.smackx.forward.packet.Forwarded
 import org.jivesoftware.smackx.mam.MamManager.MamQueryResult
 
 
-
 class ChatViewModel constructor(
     var xmpp: XMPP,
     var chatDatabase: ChatDatabase,
@@ -48,6 +47,7 @@ class ChatViewModel constructor(
     var tempMessageList = listOf<Message>()
     var uid: String? = null
     var doMoreLoading: Boolean? = false
+    var messageStr: String? = ""
     private val listHistory = mutableListOf<String>()
 
     override val coroutineContext: CoroutineContext
@@ -57,56 +57,47 @@ class ChatViewModel constructor(
     private val videoData: MutableLiveData<VideoDataResponseModel> by lazy { MutableLiveData<VideoDataResponseModel>() }
     private val messageHistoryList = MutableLiveData<List<String>>()
 
+    fun getmessage(): LiveData<String> = messageliveData
+    fun getVideoData(): LiveData<VideoDataResponseModel> = videoData
+    fun getmessageHistory(): LiveData<List<String>> = messageHistoryList
+
     fun addlistenerMulti() {
         viewModelScope.launch {
             receiveMultiMessage()
         }
     }
 
-    private suspend fun receiveMultiMessage() {
-        withContext(Dispatchers.IO) {
-            listenerMessage = object : MessageListener {
-                override fun processMessage(message: Message?) {
+    private fun receiveMultiMessage() {
+        disposableMessages = addListenerMessage().subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                val fromMessage = it?.from?.resourceOrEmpty
+                messageStr = "${it.getChatTimestamp()} : $fromMessage :: ${it.body}"
+                messageliveData.value = messageStr
+            }, {
+                Log.d("appError",it.toString())
+            }, {
+
+            })
+    }
+
+    private fun addListenerMessage(): Observable<Message> {
+        return Observable.create<Message> { source ->
+            try {
+                listenerMessage = MessageListener { message ->
                     Log.d("appmessageMulti", message?.body ?: "null")
                     Log.d("appmessageMultiTime", message?.getChatTimestamp())
-                    val fromMessage = message?.from?.resourceOrEmpty
                     if (message?.body != null) {
-                        val his = HistoryChatEntity()
-                        his.timeStamp = message.getChatTimestamp()
-                        his.fromTo = fromMessage.toString()
-                        his.message = message.body
-                        chatDatabase.historyChatDao().insertHistoryChat(his)
-                        messageliveData.postValue(message.body)
+                        source.onNext(message)
                     }
                 }
+
+                xmpp.multiUserChat?.addMessageListener(listenerMessage)
+            } catch (e: Exception) {
+                source.onError(e)
             }
-
-            xmpp.multiUserChat?.addMessageListener(listenerMessage)
         }
     }
-
-    fun addlistenerOneOnOne() {
-        viewModelScope.launch {
-            receiveOneOnOneMessage()
-        }
-    }
-
-    private suspend fun receiveOneOnOneMessage() {
-        withContext(Dispatchers.IO) {
-            ChatManager.getInstanceFor(xmpp.connection)
-                .addIncomingListener { from, message, chat ->
-                    Log.d("app receiveMessage", "message.getBody() :" + message?.body)
-                    Log.d("app receiveMessage", "message.getFrom() :" + message?.from)
-                    if (message.body != null) {
-                        messageliveData.postValue("${message.from} : ${message.body}")
-                    }
-                }
-        }
-    }
-
-    fun getmessage(): LiveData<String> = messageliveData
-    fun getVideoData(): LiveData<VideoDataResponseModel> = videoData
-    fun getmessageHistory() : LiveData<List<String>> = messageHistoryList
 
     fun getCountTime(startTime: Int, endTime: Int) {
         this.startTime = startTime
@@ -155,17 +146,13 @@ class ChatViewModel constructor(
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ listOfMessages ->
                 tempMessageList = listOfMessages
-                for (index in 0 until tempMessageList.size) {
-                    val his = HistoryChatEntity()
-                    his.timeStamp = listOfMessages.get(index).getChatTimestamp()
-                    his.fromTo = listOfMessages.get(index).from.resourceOrEmpty.toString()
-                    his.message = listOfMessages.get(index).body
-                    chatDatabase.historyChatDao().insertHistoryChat(his)
+                for (index in tempMessageList.size downTo 1 step 1) {
                     println("appMam -> ${tempMessageList.size}")
-                    println("appMam -> initMam -> OnNext -> ${tempMessageList.get(index).body}")
+                    println("appMam -> ${tempMessageList.get(index-1).body}")
+                    listHistory.add("${tempMessageList.get(index-1).getChatTimestamp()} : ${tempMessageList.get(index-1).from?.resourceOrEmpty} :: ${tempMessageList.get(index-1).body}")
                 }
             }, { t ->
-                Log.e("appMam", "-> initMam -> onError ->", t)
+                Log.d("appMamError", t.toString())
             }, {
                 messageHistoryList.value = listHistory
             })
@@ -208,15 +195,9 @@ class ChatViewModel constructor(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ listOfMessages ->
                     tempMessageList = listOfMessages
-                    chatDatabase.historyChatDao().deleteHistoryChat()
-                    for (index in 0 until tempMessageList.size) {
-                        listHistory.add(tempMessageList.get(index).body)
-                        val his = HistoryChatEntity()
-                        his.timeStamp = listOfMessages.get(index).getChatTimestamp()
-                        his.fromTo = listOfMessages.get(index).from.resourceOrEmpty.toString()
-                        his.message = listOfMessages.get(index).body
-                        chatDatabase.historyChatDao().insertHistoryChat(his)
-                        println("appMam -> initMam -> OnNext -> ${tempMessageList.get(index).body}")
+                    for (index in tempMessageList.size downTo 1 step 1) {
+                        listHistory.add("${tempMessageList.get(index-1).getChatTimestamp()} : ${tempMessageList.get(index-1).from?.resourceOrEmpty} :: ${tempMessageList.get(index-1).body}")
+                        println("appMam -> initMam -> OnNext -> ${tempMessageList.get(index-1).body}")
                     }
                 }, { t ->
                     Log.v("message", "FailinitmamError")

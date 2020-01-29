@@ -21,21 +21,21 @@ class UserListActivity : AppCompatActivity() {
 
     private var userName: String? = ""
     private var nameRoom: String? = ""
-    private val mAdapter by lazy { UserListAdapter {userListModel -> userListCallBack(userListModel)} }
+    private val mAdapter by lazy { UserListAdapter { userListModel -> userListCallBack(userListModel) } }
 
-    private fun userListCallBack(userListModel: UserListModel?){
+    private fun userListCallBack(userListModel: UserListModel?) {
         val intent = Intent(this, ChatViewActivity::class.java)
-        intent.putExtra(ChatViewActivity.USER_NAME,userListModel)
+        intent.putExtra(ChatViewActivity.USER_NAME, userListModel)
         startActivity(intent)
     }
 
     private val listname =
         mutableListOf<UserListModel>(
-            UserListModel(name = "kia.puk", isGroup = false),
-            UserListModel(name = "nonnyzcsrt", isGroup = false)
+//            UserListModel(name = "kia.puk", isGroup = false),
+//            UserListModel(name = "nonnyzcsrt", isGroup = false)
         )
     private val xmpp: XMPP by inject()
-    private val preferenceUtils : PreferenceUtils by inject()
+    private val preferenceUtils: PreferenceUtils by inject()
     //    "kia.puk","nonnyzcsrt"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,9 +66,7 @@ class UserListActivity : AppCompatActivity() {
         }
 
         for (index in 0 until listname.size) {
-            if (listname.get(index).name?.equals(userName) == false) {
-                mAdapter.addlist(listname.get(index))
-            }
+            mAdapter.addlist(listname.get(index))
         }
     }
 

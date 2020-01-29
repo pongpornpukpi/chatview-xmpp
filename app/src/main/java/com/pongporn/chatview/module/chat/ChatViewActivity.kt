@@ -39,7 +39,7 @@ class ChatViewActivity : AppCompatActivity() {
     private val chatAdapter by lazy { ChatViewAdapter() }
 
     private var userList: UserListModel? = null
-    private var chatList = mutableListOf<HistoryChatEntity>()
+    private var chatList = mutableListOf<String>()
     private var newPositionMillis: Int = 0
 
     lateinit var youTubePlayerInit: YouTubePlayer.OnInitializedListener
@@ -62,9 +62,10 @@ class ChatViewActivity : AppCompatActivity() {
             if (xmpp.isJoined() == true) {
                 viewModel.addlistenerMulti()
             }
-        } else {
-            viewModel.addlistenerOneOnOne()
         }
+//        else {
+//            viewModel.addlistenerOneOnOne()
+//        }
     }
 
     private fun initListener() {
@@ -85,7 +86,6 @@ class ChatViewActivity : AppCompatActivity() {
                     YouTubePlayer.PlaybackEventListener {
                     override fun onSeekTo(newPositionMillis: Int) {
                         Log.d("youtube", "onSeekTo $newPositionMillis")
-//                        this@ChatViewActivity.newPositionMillis = newPositionMillis
                     }
 
                     override fun onBuffering(isBuffering: Boolean) {
@@ -170,27 +170,16 @@ class ChatViewActivity : AppCompatActivity() {
         }
 
         btn_post.setOnClickListener {
-            if (userList?.isGroup == true) {
-                chatDatabase.historyChatDao().deleteHistoryChat().run {
-                    xmpp.multiChatSendMessage(et_comment.text.toString())
-                }
-            } else {
-                xmpp.sendMessage(et_comment.text.toString(), "${userList?.name}@natchatserver")
-                chatAdapter.clearList()
-                chatAdapter.addlist(chatList)
-            }
+            xmpp.multiChatSendMessage(et_comment.text.toString())
             et_comment.setText("")
         }
     }
 
     private fun initObserver() {
         viewModel.getmessage().observe(this, Observer<String> {
-            chatDatabase.historyChatDao().getHisrotyChat().apply {
-                println("ListMessage : $this")
-                chatList.addAll(this)
-                chatAdapter.clearList()
-                chatAdapter.addlist(chatList)
-            }
+            chatList.add(0, it)
+            chatAdapter.clearList()
+            chatAdapter.addlist(chatList)
         })
 
         viewModel.getVideoData().observe(this, Observer<VideoDataResponseModel> {
@@ -200,11 +189,9 @@ class ChatViewActivity : AppCompatActivity() {
         })
 
         viewModel.getmessageHistory().observe(this, Observer<List<String>> {
-            chatDatabase.historyChatDao().getHisrotyChat().apply {
-                chatList.addAll(this)
-                chatAdapter.clearList()
-                chatAdapter.addlist(chatList)
-            }
+            chatList.addAll(it)
+            chatAdapter.clearList()
+            chatAdapter.addlist(chatList)
         })
 
         viewModel.getVideoDataRequest(id = VIDEO_ID, key = YOUTUBE_API_KEY, part = "snippet")
@@ -219,6 +206,7 @@ class ChatViewActivity : AppCompatActivity() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
                     if (isUserScrolling) {
+                        println("app : $dy")
                         isListGoingUp = dy <= 0
                     }
                 }

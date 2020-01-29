@@ -8,7 +8,7 @@ import com.pongporn.chatview.database.entity.HistoryChatEntity
 
 class ChatViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    var listChat = mutableListOf<HistoryChatEntity>()
+    var listChat = mutableListOf<String>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.viewholder_chat_view,parent,false)
@@ -32,7 +32,7 @@ class ChatViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         notifyDataSetChanged()
     }
 
-    fun addlist(listItem : MutableList<HistoryChatEntity>?) {
+    fun addlist(listItem : MutableList<String>?) {
         if (listItem != null) {
             this.listChat.addAll(listItem)
         }

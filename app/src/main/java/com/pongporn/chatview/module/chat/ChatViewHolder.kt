@@ -8,9 +8,9 @@ import kotlinx.android.synthetic.main.viewholder_chat_view.view.*
 class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
 
-    fun bindView(message: HistoryChatEntity) {
+    fun bindView(message: String) {
         with(itemView) {
-            textView3.text = "${message.timeStamp} : ${message.fromTo} :: ${message.message}"
+            textView3.text = message
         }
     }
 }
