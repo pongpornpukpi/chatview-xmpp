@@ -1,6 +1,9 @@
 package com.pongporn.chatview.utils
 
+import android.app.Activity
+import android.content.Context
 import android.text.format.DateFormat
+import android.view.inputmethod.InputMethodManager
 import org.jivesoftware.smack.packet.Message
 import org.jivesoftware.smackx.delay.packet.DelayInformation
 import java.sql.Time

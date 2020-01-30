@@ -1,8 +1,12 @@
 package com.pongporn.chatview.module.chat
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.MenuItem
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,8 +17,8 @@ import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.pongporn.chatview.R
 import com.pongporn.chatview.database.ChatDatabase
-import com.pongporn.chatview.database.entity.HistoryChatEntity
 import com.pongporn.chatview.http.response.VideoDataResponseModel
+import com.pongporn.chatview.model.ChatMessageModel
 import com.pongporn.chatview.module.userlist.UserListModel
 import com.pongporn.chatview.utils.XMPP
 import com.pongporn.chatview.utils.convertMillisToDataTime
@@ -39,7 +43,7 @@ class ChatViewActivity : AppCompatActivity() {
     private val chatAdapter by lazy { ChatViewAdapter() }
 
     private var userList: UserListModel? = null
-    private var chatList = mutableListOf<String>()
+    private var chatList = mutableListOf<ChatMessageModel>()
     private var newPositionMillis: Int = 0
 
     lateinit var youTubePlayerInit: YouTubePlayer.OnInitializedListener
@@ -63,9 +67,6 @@ class ChatViewActivity : AppCompatActivity() {
                 viewModel.addlistenerMulti()
             }
         }
-//        else {
-//            viewModel.addlistenerOneOnOne()
-//        }
     }
 
     private fun initListener() {
@@ -160,9 +161,15 @@ class ChatViewActivity : AppCompatActivity() {
                 provider: YouTubePlayer.Provider?,
                 error: YouTubeInitializationResult?
             ) {
-                Snackbar.make(et_comment, "YouTube!! Init Failure. $error", Snackbar.LENGTH_SHORT)
+                Snackbar.make(scroll_horizon, "YouTube!! Init Failure. $error", Snackbar.LENGTH_SHORT)
                     .show()
             }
+        }
+
+        tv_editText.setOnClickListener {
+            xmpp.showSoftKeyboard(this)
+            ln_chat_view.visibility = View.VISIBLE
+            et_comment.requestFocus()
         }
 
         et_comment.setOnClickListener {
@@ -172,14 +179,16 @@ class ChatViewActivity : AppCompatActivity() {
         btn_post.setOnClickListener {
             xmpp.multiChatSendMessage(et_comment.text.toString())
             et_comment.setText("")
+            xmpp.hideSoftKeyboard(this@ChatViewActivity)
+            ln_chat_view.visibility = View.INVISIBLE
         }
     }
 
     private fun initObserver() {
-        viewModel.getmessage().observe(this, Observer<String> {
-            chatList.add(0, it)
-            chatAdapter.clearList()
-            chatAdapter.addlist(chatList)
+        viewModel.getmessage().observe(this, Observer<ChatMessageModel> {
+            recyclerview_chat.scrollToPosition(0)
+            chatAdapter.notifyDataSetChanged()
+            chatAdapter.addOne(it)
         })
 
         viewModel.getVideoData().observe(this, Observer<VideoDataResponseModel> {
@@ -188,7 +197,7 @@ class ChatViewActivity : AppCompatActivity() {
             }
         })
 
-        viewModel.getmessageHistory().observe(this, Observer<List<String>> {
+        viewModel.getmessageHistory().observe(this, Observer<List<ChatMessageModel>> {
             chatList.clear()
             chatList.addAll(it)
             chatAdapter.clearList()
@@ -234,6 +243,15 @@ class ChatViewActivity : AppCompatActivity() {
         val frag =
             supportFragmentManager.findFragmentById(R.id.youtube_fragment) as YouTubePlayerSupportFragment?
         frag?.initialize(YOUTUBE_API_KEY, youTubePlayerInit)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (newConfig.keyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO) {
+            Toast.makeText(this, "keyboard visible", Toast.LENGTH_SHORT).show()
+        } else if (newConfig.keyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
+            Toast.makeText(this, "keyboard hidden", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroy() {

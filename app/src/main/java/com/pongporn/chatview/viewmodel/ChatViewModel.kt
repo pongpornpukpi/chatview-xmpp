@@ -9,6 +9,7 @@ import com.pongporn.chatview.database.ChatDatabase
 import com.pongporn.chatview.database.entity.HistoryChatEntity
 import com.pongporn.chatview.http.api.YoutubeApi
 import com.pongporn.chatview.http.response.VideoDataResponseModel
+import com.pongporn.chatview.model.ChatMessageModel
 import com.pongporn.chatview.utils.*
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -47,19 +48,19 @@ class ChatViewModel constructor(
     var tempMessageList = listOf<Message>()
     var uid: String? = null
     var doMoreLoading: Boolean? = false
-    var messageStr: String? = ""
-    private val listHistory = mutableListOf<String>()
+    var messageStr: ChatMessageModel? = null
+    private val listHistory = mutableListOf<ChatMessageModel>()
 
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
-    private val messageliveData: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+    private val messageliveData: MutableLiveData<ChatMessageModel> by lazy { MutableLiveData<ChatMessageModel>() }
     private val videoData: MutableLiveData<VideoDataResponseModel> by lazy { MutableLiveData<VideoDataResponseModel>() }
-    private val messageHistoryList = MutableLiveData<List<String>>()
+    private val messageHistoryList = MutableLiveData<List<ChatMessageModel>>()
 
-    fun getmessage(): LiveData<String> = messageliveData
+    fun getmessage(): LiveData<ChatMessageModel> = messageliveData
     fun getVideoData(): LiveData<VideoDataResponseModel> = videoData
-    fun getmessageHistory(): LiveData<List<String>> = messageHistoryList
+    fun getmessageHistory(): LiveData<List<ChatMessageModel>> = messageHistoryList
 
     fun addlistenerMulti() {
         viewModelScope.launch {
@@ -72,10 +73,15 @@ class ChatViewModel constructor(
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 val fromMessage = it?.from?.resourceOrEmpty
-                messageStr = "${it.getChatTimestamp()} : $fromMessage :: ${it.body}"
+                messageStr =
+                    ChatMessageModel() //"${it.getChatTimestamp()} : $fromMessage :: ${it.body}"
+                messageStr?.timestamp = it.getChatTimestamp()
+                messageStr?.name = fromMessage.toString()
+                messageStr?.message = it.body
+                listHistory.add(0, messageStr!!)
                 messageliveData.value = messageStr
             }, {
-                Log.d("appError",it.toString())
+                Log.d("appError", it.toString())
             }, {
 
             })
@@ -148,8 +154,14 @@ class ChatViewModel constructor(
                 tempMessageList = listOfMessages
                 for (index in tempMessageList.size downTo 1 step 1) {
                     println("appMam -> ${tempMessageList.size}")
-                    println("appMam -> ${tempMessageList.get(index-1).body}")
-                    listHistory.add("${tempMessageList.get(index-1).getChatTimestamp()} : ${tempMessageList.get(index-1).from?.resourceOrEmpty} :: ${tempMessageList.get(index-1).body}")
+                    println("appMam -> ${tempMessageList.get(index - 1).body}")
+                    var messagelist = ChatMessageModel()
+                    messagelist.timestamp = tempMessageList.get(index - 1).getChatTimestamp()
+                    messagelist.name =
+                        tempMessageList.get(index - 1).from?.resourceOrEmpty.toString()
+                    messagelist.message = tempMessageList.get(index - 1).body
+                    listHistory.add(messagelist)
+//                    listHistory.add("${tempMessageList.get(index-1).getChatTimestamp()} : ${tempMessageList.get(index-1).from?.resourceOrEmpty} :: ${tempMessageList.get(index-1).body}")
                 }
             }, { t ->
                 Log.d("appMamError", t.toString())
@@ -196,8 +208,14 @@ class ChatViewModel constructor(
                 .subscribe({ listOfMessages ->
                     tempMessageList = listOfMessages
                     for (index in tempMessageList.size downTo 1 step 1) {
-                        listHistory.add("${tempMessageList.get(index-1).getChatTimestamp()} : ${tempMessageList.get(index-1).from?.resourceOrEmpty} :: ${tempMessageList.get(index-1).body}")
-                        println("appMam -> initMam -> OnNext -> ${tempMessageList.get(index-1).body}")
+                        var messagelist = ChatMessageModel()
+                        messagelist.timestamp = tempMessageList.get(index - 1).getChatTimestamp()
+                        messagelist.name =
+                            tempMessageList.get(index - 1).from?.resourceOrEmpty.toString()
+                        messagelist.message = tempMessageList.get(index - 1).body
+                        listHistory.add(messagelist)
+//                        listHistory.add("${tempMessageList.get(index - 1).getChatTimestamp()} : ${tempMessageList.get(index - 1).from?.resourceOrEmpty} :: ${tempMessageList.get(index - 1).body}")
+                        println("appMam -> initMam -> OnNext -> ${tempMessageList.get(index - 1).body}")
                     }
                 }, { t ->
                     Log.v("message", "FailinitmamError")

@@ -1,7 +1,9 @@
 package com.pongporn.chatview.utils
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
@@ -182,6 +184,16 @@ class XMPP {
 
     fun isJoined(): Boolean? {
         return multiUserChat?.isJoined
+    }
+
+    fun showSoftKeyboard(activity : Activity) {
+        val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(activity.currentFocus, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    fun hideSoftKeyboard(activity: Activity) {
+        val inputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(activity.currentFocus?.windowToken, 0)
     }
 
 }
