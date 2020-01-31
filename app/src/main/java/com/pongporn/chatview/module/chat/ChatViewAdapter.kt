@@ -33,6 +33,11 @@ class ChatViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         notifyDataSetChanged()
     }
 
+    fun removeLastList() {
+        listChat.removeAt(0)
+        notifyDataSetChanged()
+    }
+
     fun addOne(message : ChatMessageModel) {
         this.listChat.add(0,message)
         notifyDataSetChanged()

@@ -187,8 +187,13 @@ class ChatViewActivity : AppCompatActivity() {
     private fun initObserver() {
         viewModel.getmessage().observe(this, Observer<ChatMessageModel> {
             recyclerview_chat.scrollToPosition(0)
+            chatAdapter.addOne(ChatMessageModel("","",""))
             chatAdapter.notifyDataSetChanged()
-            chatAdapter.addOne(it)
+            Handler().postDelayed({
+                chatAdapter.removeLastList()
+                chatAdapter.addOne(it)
+                recyclerview_chat.scrollToPosition(0)
+            },500)
         })
 
         viewModel.getVideoData().observe(this, Observer<VideoDataResponseModel> {
