@@ -24,6 +24,7 @@ import com.pongporn.chatview.utils.XMPP
 import com.pongporn.chatview.utils.convertMillisToDataTime
 import com.pongporn.chatview.utils.convertMillisToSecond
 import com.pongporn.chatview.viewmodel.ChatViewModel
+import com.pongporn.chatview.widgets.CustomEditText
 import kotlinx.android.synthetic.main.activity_chat_view.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -175,6 +176,13 @@ class ChatViewActivity : AppCompatActivity() {
         et_comment.setOnClickListener {
 
         }
+
+        et_comment.setHandleDismissingKeyboard(object : CustomEditText.onHandleDismissingKeyboard{
+            override fun dismissKeyboard() {
+                xmpp.hideSoftKeyboard(this@ChatViewActivity)
+                ln_chat_view.visibility = View.INVISIBLE
+            }
+        })
 
         btn_post.setOnClickListener {
             xmpp.multiChatSendMessage(et_comment.text.toString())
