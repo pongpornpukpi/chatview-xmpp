@@ -2,6 +2,8 @@ package com.pongporn.chatview.utils
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.app.Activity
+import android.content.Context
 import android.text.format.DateFormat
 import org.jivesoftware.smack.packet.Message
 import org.jivesoftware.smackx.delay.packet.DelayInformation
@@ -14,6 +16,11 @@ import android.os.Handler
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
+import android.view.animation.Animation
+import com.pongporn.chatview.R
+import com.pongporn.chatview.utils.EmoticonsExcample.Direction
+import com.pongporn.chatview.utils.EmoticonsExcample.ZeroGravityAnimation
 
 
 fun Int.convertMillisToDataTime() : String {
@@ -154,4 +161,31 @@ fun View.setOnAnimateClickListener(resId: Int?, onClick: (View) -> Unit) {
             else -> true
         }
     }
+}
+
+fun Int.flyEmoji(activity : Activity) {
+    val resId = this
+    val animation = ZeroGravityAnimation()
+    animation.setCount(1)
+    animation.setScalingFactor(0.2f)
+    animation.setOriginationDirection(Direction.BOTTOM)
+    animation.setDestinationDirection(Direction.TOP)
+    animation.setImage(resId)
+    animation.setAnimationListener(object : Animation.AnimationListener {
+        override fun onAnimationStart(animation: Animation) {
+
+        }
+
+        override fun onAnimationEnd(animation: Animation) {
+
+        }
+
+        override fun onAnimationRepeat(animation: Animation) {
+
+        }
+    }
+    )
+
+    val container = activity.findViewById<ViewGroup>(R.id.animation_holder)
+    animation.play(activity, container)
 }
