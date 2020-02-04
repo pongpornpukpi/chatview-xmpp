@@ -29,20 +29,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun initClick() {
         button.setOnClickListener {
-            val intent = Intent(this@MainActivity, ChatViewActivity::class.java)
-            intent.putExtra(UserListActivity.NAME_USER, name)
-            intent.putExtra(UserListActivity.NAME_ROOM,nameRoom)
-            startActivity(intent)
-//            if (editText.text.toString().isNotEmpty() && editText.text.contains("@")) {
-//                name = editText.text.toString().split("@")[0]
-//                password = editText2.text.toString()
-//                nameRoom = editText.text.toString().split("@")[1]
-//                val task = MyLoginTask(this, xmpp)
-//                task.setUsernameAndPassword(name, password,nameRoom)
-//                Snackbar.make(button,"app login : wait to login...",Snackbar.LENGTH_SHORT).show()
-//                Log.d("app login ",": wait to login...")
-//                task.execute()
-//            }
+//            val intent = Intent(this@MainActivity, ChatViewActivity::class.java)
+//            intent.putExtra(UserListActivity.NAME_USER, name)
+//            intent.putExtra(UserListActivity.NAME_ROOM,nameRoom)
+//            startActivity(intent)
+            if (editText.text.toString().isNotEmpty() && editText.text.contains("@")) {
+                name = editText.text.toString().split("@")[0]
+                password = editText2.text.toString()
+                nameRoom = editText.text.toString().split("@")[1]
+                val task = MyLoginTask(this, xmpp)
+                task.setUsernameAndPassword(name, password,nameRoom)
+                Snackbar.make(button,"app login : wait to login...",Snackbar.LENGTH_SHORT).show()
+                Log.d("app login ",": wait to login...")
+                task.execute()
+            }
         }
     }
 
