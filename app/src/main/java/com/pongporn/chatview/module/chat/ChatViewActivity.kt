@@ -6,11 +6,14 @@ import android.os.Handler
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import butterknife.ButterKnife
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
@@ -20,14 +23,22 @@ import com.pongporn.chatview.database.ChatDatabase
 import com.pongporn.chatview.http.response.VideoDataResponseModel
 import com.pongporn.chatview.model.ChatMessageModel
 import com.pongporn.chatview.module.userlist.UserListModel
+import com.pongporn.chatview.utils.EmoticonLiveReaction.Emoticons
 import com.pongporn.chatview.utils.XMPP
 import com.pongporn.chatview.utils.convertMillisToDataTime
 import com.pongporn.chatview.utils.convertMillisToSecond
 import com.pongporn.chatview.viewmodel.ChatViewModel
 import com.pongporn.chatview.widgets.CustomEditText
+import io.reactivex.BackpressureStrategy
+import io.reactivex.Flowable
+import io.reactivex.FlowableEmitter
+import io.reactivex.FlowableOnSubscribe
+import io.reactivex.schedulers.Timed
 import kotlinx.android.synthetic.main.activity_chat_view.*
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 
 class ChatViewActivity : AppCompatActivity() {
 
@@ -52,6 +63,11 @@ class ChatViewActivity : AppCompatActivity() {
 
     private var isUserScrolling = false
     private var isListGoingUp = true
+    private var emoticonSubscription: Subscription? = null
+    private var subscriber : Subscriber<Timed<Emoticons>>? = null
+    private val MINIMUM_DURATION_BETWEEN_EMOTICONS = 300 // in milliseconds
+
+    private var emoticonClickAnimation: Animation? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,12 +76,68 @@ class ChatViewActivity : AppCompatActivity() {
         initObserver()
         initListener()
         initView()
+        ButterKnife.bind(this)
         if (userList?.isGroup == true) {
             xmpp.onCreateMultiChatGroupRoom(userList?.name)
             xmpp.onJoinMultiChatGroupRoom()
             xmpp.initMam()
             if (xmpp.isJoined() == true) {
                 viewModel.addlistenerMulti()
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        //Create an instance of FlowableOnSubscribe which will convert click events to streams
+        val flowableOnSubscribe = object : FlowableOnSubscribe<Emoticons> {
+            override fun subscribe(emitter: FlowableEmitter<Emoticons>) {
+                convertClickEventToStream(emitter)
+            }
+        }
+        //Give the backpressure strategy as BUFFER, so that the click items do not drop.
+        val emoticonsFlowable = Flowable.create(flowableOnSubscribe, BackpressureStrategy.BUFFER)
+        //Convert the stream to a timed stream, as we require the timestamp of each event
+        val emoticonsTimedFlowable = emoticonsFlowable.timestamp()
+        subscriber = getSubscriber()
+        //Subscribe
+        emoticonsTimedFlowable.subscribeWith(subscriber)
+    }
+
+    private fun getSubscriber(): Subscriber<Timed<Emoticons>> {
+        return object : Subscriber<Timed<Emoticons>> {
+            override fun onSubscribe(s: Subscription) {
+                emoticonSubscription = s
+                emoticonSubscription?.request(1)
+
+                // for lazy evaluation.
+                custom_view?.initView(this@ChatViewActivity)
+            }
+
+            override fun onNext(timed: Timed<Emoticons>) {
+
+                custom_view?.addView(timed.value())
+
+                val currentTimeStamp = System.currentTimeMillis()
+                val diffInMillis = currentTimeStamp - (timed as Timed<*>).time()
+                if (diffInMillis > MINIMUM_DURATION_BETWEEN_EMOTICONS) {
+                    emoticonSubscription?.request(1)
+                } else {
+                    val handler = Handler()
+                    handler.postDelayed({
+                            emoticonSubscription?.request(1)
+                        },
+                        MINIMUM_DURATION_BETWEEN_EMOTICONS - diffInMillis
+                    )
+                }
+            }
+
+            override fun onError(t: Throwable) {
+                //Do nothing
+            }
+
+            override fun onComplete() {
+                emoticonSubscription?.cancel()
             }
         }
     }
@@ -192,6 +264,19 @@ class ChatViewActivity : AppCompatActivity() {
         }
     }
 
+    private fun convertClickEventToStream(emitter: FlowableEmitter<Emoticons>) {
+        like_emoticon?.setOnClickListener { doOnClick(it, emitter, Emoticons.LIKE) }
+
+        love_emoticon?.setOnClickListener { doOnClick(it, emitter, Emoticons.LOVE) }
+
+        sad_emoticon?.setOnClickListener { doOnClick(it, emitter, Emoticons.SAD) }
+
+        wow_emoticon?.setOnClickListener { doOnClick(it, emitter, Emoticons.WOW) }
+
+        angry_emoticon?.setOnClickListener { doOnClick(it, emitter, Emoticons.ANGRY) }
+    }
+
+
     private fun initObserver() {
         viewModel.getmessage().observe(this, Observer<ChatMessageModel> {
             recyclerview_chat.scrollToPosition(0)
@@ -265,6 +350,20 @@ class ChatViewActivity : AppCompatActivity() {
         } else if (newConfig.keyboardHidden == Configuration.HARDKEYBOARDHIDDEN_YES) {
             Toast.makeText(this, "keyboard hidden", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        emoticonSubscription?.cancel()
+    }
+
+    private fun doOnClick(view: View, emitter: FlowableEmitter<Emoticons>, emoticons: Emoticons) {
+        emoticonClickAnimation = AnimationUtils.loadAnimation(
+            this@ChatViewActivity,
+            R.anim.emoticon_click_animation
+        )
+        view.startAnimation(emoticonClickAnimation)
+        emitter.onNext(emoticons)
     }
 
     override fun onDestroy() {

@@ -1,13 +1,15 @@
 package com.pongporn.chatview.utils
 
-import android.app.Activity
-import android.content.Context
 import android.text.format.DateFormat
-import android.view.inputmethod.InputMethodManager
 import org.jivesoftware.smack.packet.Message
 import org.jivesoftware.smackx.delay.packet.DelayInformation
-import java.sql.Time
 import java.util.concurrent.TimeUnit
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+
+
 
 fun Int.convertMillisToDataTime() : String {
     val milliseconds: Int = this
@@ -45,4 +47,33 @@ fun Message.getChatTimestamp(): String {
     ts = timestamp?.stamp?.time ?: System.currentTimeMillis()
 
     return ts.convertTimeMilliToString()
+}
+
+fun Drawable.drawableToBitmap(): Bitmap? {
+    var bitmap: Bitmap? = null
+    val drawable = this
+    if (drawable is BitmapDrawable) {
+        if (drawable.bitmap != null) {
+            return drawable.bitmap
+        }
+    }
+
+    if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
+        bitmap = Bitmap.createBitmap(
+            1,
+            1,
+            Bitmap.Config.ARGB_8888
+        ) // Single color bitmap will be created of 1x1 pixel
+    } else {
+        bitmap = Bitmap.createBitmap(
+            drawable.intrinsicWidth,
+            drawable.intrinsicHeight,
+            Bitmap.Config.ARGB_8888
+        )
+    }
+
+    val canvas = Canvas(bitmap)
+    drawable.setBounds(0, 0, canvas.width, canvas.height)
+    drawable.draw(canvas)
+    return bitmap
 }

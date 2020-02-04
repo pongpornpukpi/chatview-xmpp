@@ -12,4 +12,6 @@
     <color name="black_opacity80">#CC000000</color>
     <color name="black_opacity90">#E6000000</color>
     <color name="colorWhite">#FFFFFF</color>
+    <color name="colorGray">#80808080</color>
+
 </resources>
