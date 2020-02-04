@@ -24,9 +24,13 @@ class EmoticonsView : View {
 
     private var mLiveEmoticons = arrayListOf<LiveEmoticon>()
     private val X_CORDINATE_STEP = 8
+    private val X_CORDINATE_OFFSET = 150
+    private val X_CORDINATE_RANGE = 200
+    private val Y_CORDINATE_STEP = 8
     private val Y_CORDINATE_OFFSET = 100
     private val Y_CORDINATE_RANGE = 200
     private var mScreenWidth: Int = 0
+    private var mScreenHeight: Int = 0
 
     constructor(context: Context?) : super(context)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
@@ -41,6 +45,7 @@ class EmoticonsView : View {
         val displayMetrics = DisplayMetrics()
         activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
         mScreenWidth = displayMetrics.widthPixels
+        mScreenHeight = displayMetrics.heightPixels
         mPaint = Paint()
 
         mAnimPath = Path()
@@ -81,10 +86,11 @@ class EmoticonsView : View {
         while (iterator.hasNext()) {
             val `object` = iterator.next()
 
-            val xCoordinate = `object`.getxCordinate() - X_CORDINATE_STEP
-            val yCoordinate = `object`.getyCordinate()
-            `object`.setxCordinate(xCoordinate)
-            if (xCoordinate > 0) {
+            val xCoordinate = `object`.getxCordinate() + 600
+            val yCoordinate = `object`.getyCordinate() - Y_CORDINATE_STEP
+//            `object`.setxCordinate(xCoordinate)
+            `object`.setyCordinate(yCoordinate)
+            if (yCoordinate > 0) {
                 mMatrix?.reset()
                 mMatrix?.postTranslate(xCoordinate.toFloat(), yCoordinate.toFloat())
                 resizeImageSizeBasedOnXCoordinates(canvas, `object`)
@@ -114,19 +120,6 @@ class EmoticonsView : View {
             Emoticons.ANGRY -> bitMap48 = mAngry48
         }
 
-        if (xCoordinate > mScreenWidth / 2) {
-            if (bitMap48 != null && mMatrix != null) {
-                canvas.drawBitmap(bitMap48, mMatrix!!, null)
-            }
-        } else if (xCoordinate > mScreenWidth / 4) {
-            scaled = Bitmap.createScaledBitmap(
-                bitMap48!!,
-                3 * bitMap48.width / 4,
-                3 * bitMap48.height / 4,
-                false
-            )
-            canvas.drawBitmap(scaled, mMatrix!!, null)
-        } else {
             scaled = Bitmap.createScaledBitmap(
                 bitMap48!!,
                 bitMap48.width / 2,
@@ -134,12 +127,11 @@ class EmoticonsView : View {
                 false
             )
             canvas.drawBitmap(scaled, mMatrix!!, null)
-        }
     }
 
     fun addView(emoticons: Emoticons) {
-        val startXCoordinate = mScreenWidth
-        val startYCoordinate = Random().nextInt(Y_CORDINATE_RANGE) + Y_CORDINATE_OFFSET
+        val startXCoordinate = Random().nextInt(X_CORDINATE_RANGE) + X_CORDINATE_OFFSET
+        val startYCoordinate = mScreenHeight - 1000
         val liveEmoticon = LiveEmoticon()
         liveEmoticon.LiveEmoticon(emoticons, startXCoordinate, startYCoordinate)
         mLiveEmoticons.add(liveEmoticon)

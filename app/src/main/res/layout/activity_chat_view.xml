@@ -38,7 +38,7 @@
             android:id="@+id/custom_view"
             android:layout_gravity="bottom"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/emoticons_view_height" />
+            android:layout_height="match_parent" />
 
     </FrameLayout>
 

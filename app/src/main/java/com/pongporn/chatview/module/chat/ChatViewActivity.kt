@@ -27,6 +27,7 @@ import com.pongporn.chatview.utils.EmoticonLiveReaction.Emoticons
 import com.pongporn.chatview.utils.XMPP
 import com.pongporn.chatview.utils.convertMillisToDataTime
 import com.pongporn.chatview.utils.convertMillisToSecond
+import com.pongporn.chatview.utils.setOnAnimateClickListener
 import com.pongporn.chatview.viewmodel.ChatViewModel
 import com.pongporn.chatview.widgets.CustomEditText
 import io.reactivex.BackpressureStrategy
@@ -265,17 +266,16 @@ class ChatViewActivity : AppCompatActivity() {
     }
 
     private fun convertClickEventToStream(emitter: FlowableEmitter<Emoticons>) {
-        like_emoticon?.setOnClickListener { doOnClick(it, emitter, Emoticons.LIKE) }
+        like_emoticon?.setOnAnimateClickListener { doOnClick(it, emitter, Emoticons.LIKE) }
 
-        love_emoticon?.setOnClickListener { doOnClick(it, emitter, Emoticons.LOVE) }
+        love_emoticon?.setOnAnimateClickListener { doOnClick(it, emitter, Emoticons.LOVE) }
 
-        sad_emoticon?.setOnClickListener { doOnClick(it, emitter, Emoticons.SAD) }
+        sad_emoticon?.setOnAnimateClickListener { doOnClick(it, emitter, Emoticons.SAD) }
 
-        wow_emoticon?.setOnClickListener { doOnClick(it, emitter, Emoticons.WOW) }
+        wow_emoticon?.setOnAnimateClickListener { doOnClick(it, emitter, Emoticons.WOW) }
 
-        angry_emoticon?.setOnClickListener { doOnClick(it, emitter, Emoticons.ANGRY) }
+        angry_emoticon?.setOnAnimateClickListener { doOnClick(it, emitter, Emoticons.ANGRY) }
     }
-
 
     private fun initObserver() {
         viewModel.getmessage().observe(this, Observer<ChatMessageModel> {
@@ -358,11 +358,6 @@ class ChatViewActivity : AppCompatActivity() {
     }
 
     private fun doOnClick(view: View, emitter: FlowableEmitter<Emoticons>, emoticons: Emoticons) {
-        emoticonClickAnimation = AnimationUtils.loadAnimation(
-            this@ChatViewActivity,
-            R.anim.emoticon_click_animation
-        )
-        view.startAnimation(emoticonClickAnimation)
         emitter.onNext(emoticons)
     }
 
