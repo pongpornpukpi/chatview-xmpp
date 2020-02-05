@@ -51,29 +51,17 @@ class EmoticonsView : View {
         mAnimPath = Path()
         mMatrix = Matrix()
 
-        //Like emoticons
         val likeDrawable = resources.getDrawable(R.drawable.ic_like)
         val loveDrawable = resources.getDrawable(R.drawable.ic_love)
         val wowDrawable = resources.getDrawable(R.drawable.ic_wow)
         val sadDrawable = resources.getDrawable(R.drawable.ic_sad)
         val angryDrawable = resources.getDrawable(R.drawable.ic_angry)
 
-
-
         mLike48 = likeDrawable.drawableToBitmap()
-//            BitmapFactory.decodeResource(context.resources, R.drawable.ic_like)
-        //Love emoticons
         mLove48 = loveDrawable.drawableToBitmap()
-//            BitmapFactory.decodeResource(context.resources, R.drawable.ic_love)
-        //Wow emoticons
         mWow48 = wowDrawable.drawableToBitmap()
-//            BitmapFactory.decodeResource(context.resources, R.drawable.ic_wow)
-        //Sad emoticons
         mSad48 = sadDrawable.drawableToBitmap()
-//            BitmapFactory.decodeResource(context.resources, R.drawable.ic_sad)
-        //Angry emoticons
         mAngry48 = angryDrawable.drawableToBitmap()
-//            BitmapFactory.decodeResource(context.resources, R.drawable.ic_angry)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -88,7 +76,6 @@ class EmoticonsView : View {
 
             val xCoordinate = `object`.getxCordinate() + 600
             val yCoordinate = `object`.getyCordinate() - Y_CORDINATE_STEP
-//            `object`.setxCordinate(xCoordinate)
             `object`.setyCordinate(yCoordinate)
             if (yCoordinate > 0) {
                 mMatrix?.reset()
@@ -106,7 +93,7 @@ class EmoticonsView : View {
             return
         }
 
-        val xCoordinate = liveEmoticon.getxCordinate()
+        val yCoordinate = liveEmoticon.getyCordinate()
         var bitMap48: Bitmap? = null
         var scaled: Bitmap? = null
 
@@ -120,6 +107,7 @@ class EmoticonsView : View {
             Emoticons.ANGRY -> bitMap48 = mAngry48
         }
 
+        if (yCoordinate < 750) {
             scaled = Bitmap.createScaledBitmap(
                 bitMap48!!,
                 bitMap48.width / 2,
@@ -127,6 +115,18 @@ class EmoticonsView : View {
                 false
             )
             canvas.drawBitmap(scaled, mMatrix!!, null)
+        } else {
+            val likeDrawable = resources.getDrawable(R.drawable.ic_profile)
+            bitMap48 = likeDrawable.drawableToBitmap()
+
+            scaled = Bitmap.createScaledBitmap(
+                bitMap48!!,
+                bitMap48.width / 2,
+                bitMap48.height / 2,
+                false
+            )
+            canvas.drawBitmap(scaled, mMatrix!!, null)
+        }
     }
 
     fun addView(emoticons: Emoticons) {

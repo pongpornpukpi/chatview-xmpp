@@ -5,6 +5,7 @@ import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.ViewGroup
 import com.pongporn.chatview.utils.drawableToBitmap
@@ -105,7 +106,6 @@ class ZeroGravityAnimation {
 
             for (i in 0 until mCount) {
 
-
                 val origin =
                     if (mOriginationDirection === Direction.RANDOM) generator.getRandomDirection() else mOriginationDirection
                 val destination =
@@ -118,9 +118,7 @@ class ZeroGravityAnimation {
 
                 val likeDrawable = activity.resources.getDrawable(mImageResId)
 
-
                 val bitmap = likeDrawable.drawableToBitmap()
-//                    BitmapFactory.decodeResource(activity.resources, mImageResId)
 
                 val scaledBitmap = Bitmap.createScaledBitmap(
                     bitmap!!,
@@ -147,7 +145,6 @@ class ZeroGravityAnimation {
                     Direction.BOTTOM -> endPoints[1] += scaledBitmap.height
                 }
 
-
                 val layer = OverTheTopLayer()
 
                 val ottLayout = layer.with(activity)
@@ -166,14 +163,14 @@ class ZeroGravityAnimation {
 
                 var duration = mDuration
                 if (duration == RANDOM_DURATION) {
-                    duration = RandomUtil().generateRandomBetween(3500, 12500)
+                    duration = RandomUtil().generateRandomBetween(3500, 6500)
                 }
 
                 val animation = TranslateAnimation(0f, deltaX.toFloat(), 0f, deltaY.toFloat())
                 animation.duration = duration.toLong()
                 animation.setAnimationListener(object : Animation.AnimationListener {
                     override fun onAnimationStart(animation: Animation) {
-
+                        println("running start")
                         if (i == 0) {
                             if (mAnimationListener != null) {
                                 mAnimationListener!!.onAnimationStart(animation)
@@ -182,6 +179,7 @@ class ZeroGravityAnimation {
                     }
 
                     override fun onAnimationEnd(animation: Animation) {
+                        println("running end")
 
                         layer.destroy()
 
@@ -194,7 +192,7 @@ class ZeroGravityAnimation {
                     }
 
                     override fun onAnimationRepeat(animation: Animation) {
-
+                        println("running")
                     }
                 })
                 layer.applyAnimation(animation)

@@ -264,20 +264,16 @@ class ChatViewActivity : AppCompatActivity() {
 
     private fun convertClickEventToStream(emitter: FlowableEmitter<Emoticons>) {
         like_emoticon?.setOnAnimateClickListener {
-//            val likeEmo = R.drawable.ic_like
-//            likeEmo.flyEmoji(this)
-            doOnClick(it, emitter, Emoticons.LIKE)
+            val likeEmo = R.drawable.ic_like
+            likeEmo.flyEmoji(this)
+//            doOnClick(it, emitter, Emoticons.LIKE)
         }
 
         love_emoticon?.setOnAnimateClickListener {
-//            val loveEmo = R.drawable.ic_love
-//            loveEmo.flyEmoji(this)
             doOnClick(it, emitter, Emoticons.LOVE)
         }
 
         sad_emoticon?.setOnAnimateClickListener {
-//            val sadEmo = R.drawable.ic_sad
-//            sadEmo.flyEmoji(this)
             doOnClick(it, emitter, Emoticons.SAD)
         }
 

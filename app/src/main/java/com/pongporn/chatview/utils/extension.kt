@@ -167,7 +167,7 @@ fun Int.flyEmoji(activity : Activity) {
     val resId = this
     val animation = ZeroGravityAnimation()
     animation.setCount(1)
-    animation.setScalingFactor(0.2f)
+    animation.setScalingFactor(0.5f)
     animation.setOriginationDirection(Direction.BOTTOM)
     animation.setDestinationDirection(Direction.TOP)
     animation.setImage(resId)
