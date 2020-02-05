@@ -11,7 +11,6 @@ import com.pongporn.chatview.module.chat.ChatViewActivity
 import com.pongporn.chatview.module.userlist.UserListActivity
 import com.pongporn.chatview.utils.XMPP
 import kotlinx.android.synthetic.main.activity_main.*
-import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent
 import org.koin.android.ext.android.inject
 
 
@@ -27,15 +26,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initClick()
-        KeyboardVisibilityEvent.setEventListener(
-            this
-        ) {
-            if (it){
-            }
-            else {
-
-            }
-        }
     }
 
     private fun initClick() {

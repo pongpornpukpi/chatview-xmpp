@@ -33,7 +33,6 @@ import io.reactivex.FlowableEmitter
 import io.reactivex.FlowableOnSubscribe
 import io.reactivex.schedulers.Timed
 import kotlinx.android.synthetic.main.activity_chat_view.*
-import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.reactivestreams.Subscriber
@@ -84,16 +83,7 @@ class ChatViewActivity : AppCompatActivity() {
                 viewModel.addlistenerMulti()
             }
         }
-        KeyboardVisibilityEvent.setEventListener(
-            this
-        ) {
-            if (it){
 
-            }
-            else {
-
-            }
-        }
     }
 
     override fun onStart() {
