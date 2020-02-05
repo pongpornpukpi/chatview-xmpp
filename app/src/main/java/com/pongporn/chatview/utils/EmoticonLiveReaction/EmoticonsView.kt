@@ -8,6 +8,8 @@ import android.app.Activity
 import android.graphics.*
 import com.pongporn.chatview.R
 import android.graphics.Bitmap
+import android.widget.LinearLayout
+import com.airbnb.lottie.LottieAnimationView
 import com.pongporn.chatview.utils.drawableToBitmap
 import java.util.*
 
@@ -31,6 +33,7 @@ class EmoticonsView : View {
     private val Y_CORDINATE_RANGE = 200
     private var mScreenWidth: Int = 0
     private var mScreenHeight: Int = 0
+    private lateinit var activity: Activity
 
     constructor(context: Context?) : super(context)
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
@@ -47,6 +50,8 @@ class EmoticonsView : View {
         mScreenWidth = displayMetrics.widthPixels
         mScreenHeight = displayMetrics.heightPixels
         mPaint = Paint()
+
+        this.activity = activity
 
         mAnimPath = Path()
         mMatrix = Matrix()
@@ -99,12 +104,12 @@ class EmoticonsView : View {
 
         val emoticons = liveEmoticon.getEmoticons() ?: return
 
-        when (emoticons) {
-            Emoticons.LIKE -> bitMap48 = mLike48
-            Emoticons.LOVE -> bitMap48 = mLove48
-            Emoticons.WOW -> bitMap48 = mWow48
-            Emoticons.SAD -> bitMap48 = mSad48
-            Emoticons.ANGRY -> bitMap48 = mAngry48
+        bitMap48 = when (emoticons) {
+            Emoticons.LIKE -> mLike48
+            Emoticons.LOVE -> mLove48
+            Emoticons.WOW -> mWow48
+            Emoticons.SAD -> mSad48
+            Emoticons.ANGRY -> mAngry48
         }
 
         if (yCoordinate < 750) {
@@ -115,6 +120,8 @@ class EmoticonsView : View {
                 false
             )
             canvas.drawBitmap(scaled, mMatrix!!, null)
+        } else if (yCoordinate == 750) {
+
         } else {
             val likeDrawable = resources.getDrawable(R.drawable.ic_profile)
             bitMap48 = likeDrawable.drawableToBitmap()

@@ -8,12 +8,14 @@ import android.view.MenuItem
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import butterknife.ButterKnife
+import com.airbnb.lottie.LottieAnimationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
@@ -42,7 +44,7 @@ class ChatViewActivity : AppCompatActivity() {
 
     companion object {
         const val USER_NAME = "user_name"
-        const val VIDEO_ID = "Sa2rsOxEtIA"
+        const val VIDEO_ID = "Z8NdLhqYk_A"
         //        Sa2rsOxEtIA,Z8NdLhqYk_A
         const val YOUTUBE_API_KEY = "AIzaSyAAvHB1OGvfLpgwLVvKMY3Li58g4XtGZGk"
     }
@@ -62,7 +64,7 @@ class ChatViewActivity : AppCompatActivity() {
     private var isUserScrolling = false
     private var isListGoingUp = true
     private var emoticonSubscription: Subscription? = null
-    private var subscriber : Subscriber<Timed<Emoticons>>? = null
+    private var subscriber: Subscriber<Timed<Emoticons>>? = null
     private val MINIMUM_DURATION_BETWEEN_EMOTICONS = 300 // in milliseconds
 
     private var emoticonClickAnimation: Animation? = null
@@ -122,7 +124,8 @@ class ChatViewActivity : AppCompatActivity() {
                     emoticonSubscription?.request(1)
                 } else {
                     val handler = Handler()
-                    handler.postDelayed({
+                    handler.postDelayed(
+                        {
                             emoticonSubscription?.request(1)
                         },
                         MINIMUM_DURATION_BETWEEN_EMOTICONS - diffInMillis
@@ -232,7 +235,11 @@ class ChatViewActivity : AppCompatActivity() {
                 provider: YouTubePlayer.Provider?,
                 error: YouTubeInitializationResult?
             ) {
-                Snackbar.make(scroll_horizon, "YouTube!! Init Failure. $error", Snackbar.LENGTH_SHORT)
+                Snackbar.make(
+                    scroll_horizon,
+                    "YouTube!! Init Failure. $error",
+                    Snackbar.LENGTH_SHORT
+                )
                     .show()
             }
         }
@@ -247,7 +254,7 @@ class ChatViewActivity : AppCompatActivity() {
 
         }
 
-        et_comment.setHandleDismissingKeyboard(object : CustomEditText.onHandleDismissingKeyboard{
+        et_comment.setHandleDismissingKeyboard(object : CustomEditText.onHandleDismissingKeyboard {
             override fun dismissKeyboard() {
                 xmpp.hideSoftKeyboard(this@ChatViewActivity)
                 ln_chat_view.visibility = View.INVISIBLE
@@ -270,32 +277,40 @@ class ChatViewActivity : AppCompatActivity() {
         }
 
         love_emoticon?.setOnAnimateClickListener {
-            doOnClick(it, emitter, Emoticons.LOVE)
+            val loveEmo = R.drawable.ic_love
+            loveEmo.flyEmoji(this)
+//            doOnClick(it, emitter, Emoticons.LOVE)
         }
 
         sad_emoticon?.setOnAnimateClickListener {
-            doOnClick(it, emitter, Emoticons.SAD)
+            val sadEmo = R.drawable.ic_sad
+            sadEmo.flyEmoji(this)
+//            doOnClick(it, emitter, Emoticons.SAD)
         }
 
         wow_emoticon?.setOnAnimateClickListener {
-            doOnClick(it, emitter, Emoticons.WOW)
+            val wowEmo = R.drawable.ic_wow
+            wowEmo.flyEmoji(this)
+//            doOnClick(it, emitter, Emoticons.WOW)
         }
 
         angry_emoticon?.setOnAnimateClickListener {
-            doOnClick(it, emitter, Emoticons.ANGRY)
+            val angryEmo = R.drawable.ic_angry
+            angryEmo.flyEmoji(this)
+//            doOnClick(it, emitter, Emoticons.ANGRY)
         }
     }
 
     private fun initObserver() {
         viewModel.getmessage().observe(this, Observer<ChatMessageModel> {
             recyclerview_chat.scrollToPosition(0)
-            chatAdapter.addOne(ChatMessageModel("","",""))
+            chatAdapter.addOne(ChatMessageModel("", "", ""))
             chatAdapter.notifyDataSetChanged()
             Handler().postDelayed({
                 chatAdapter.removeLastList()
                 chatAdapter.addOne(it)
                 recyclerview_chat.scrollToPosition(0)
-            },500)
+            }, 500)
         })
 
         viewModel.getVideoData().observe(this, Observer<VideoDataResponseModel> {

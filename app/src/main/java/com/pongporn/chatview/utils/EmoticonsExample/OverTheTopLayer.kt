@@ -1,4 +1,4 @@
-package com.pongporn.chatview.utils.EmoticonsExcample
+package com.pongporn.chatview.utils.EmoticonsExample
 
 import android.graphics.Bitmap
 import android.widget.FrameLayout
@@ -107,21 +107,18 @@ class OverTheTopLayer {
         if (activity != null) {
             var attachingView: ViewGroup? = null
 
-
             if (mWeakRootView != null && mWeakRootView?.get() != null) {
                 attachingView = mWeakRootView?.get()
             } else {
                 attachingView = activity.findViewById<ViewGroup>(android.R.id.content)
             }
 
-
             val imageView = ImageView(activity)
 
             imageView.setImageBitmap(mBitmap)
 
-
-            val minWidth = mBitmap?.getWidth()
-            val minHeight = mBitmap?.getHeight()
+            val minWidth = mBitmap?.width
+            val minHeight = mBitmap?.height
 
             imageView.measure(
                 View.MeasureSpec.makeMeasureSpec(minWidth!!, View.MeasureSpec.AT_MOST),
@@ -148,7 +145,7 @@ class OverTheTopLayer {
             params.leftMargin = xPosition
             params.topMargin = yPosition
 
-            imageView.setLayoutParams(params)
+            imageView.layoutParams = params
 
             val ottLayer = FrameLayout(activity)
             val topLayerParam = FrameLayout.LayoutParams(

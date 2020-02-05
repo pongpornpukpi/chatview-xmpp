@@ -1,11 +1,9 @@
-package com.pongporn.chatview.utils.EmoticonsExcample
+package com.pongporn.chatview.utils.EmoticonsExample
 
 import android.app.Activity
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.ViewGroup
 import com.pongporn.chatview.utils.drawableToBitmap
@@ -163,10 +161,10 @@ class ZeroGravityAnimation {
 
                 var duration = mDuration
                 if (duration == RANDOM_DURATION) {
-                    duration = RandomUtil().generateRandomBetween(3500, 6500)
+                    duration = RandomUtil().generateRandomBetween(2500, 6500)
                 }
 
-                val animation = TranslateAnimation(0f, deltaX.toFloat(), 0f, deltaY.toFloat())
+                val animation = TranslateAnimation(0f, 100f, 0f, deltaY.toFloat())
                 animation.duration = duration.toLong()
                 animation.setAnimationListener(object : Animation.AnimationListener {
                     override fun onAnimationStart(animation: Animation) {

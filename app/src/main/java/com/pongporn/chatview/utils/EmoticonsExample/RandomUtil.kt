@@ -1,4 +1,4 @@
-package com.pongporn.chatview.utils.EmoticonsExcample
+package com.pongporn.chatview.utils.EmoticonsExample
 
 import java.util.*
 

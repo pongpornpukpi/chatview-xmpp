@@ -1,6 +1,7 @@
-package com.pongporn.chatview.utils.EmoticonsExcample
+package com.pongporn.chatview.utils.EmoticonsExample
 
 import android.app.Activity
+import com.pongporn.chatview.R
 import java.util.*
 
 
@@ -90,7 +91,8 @@ class DirectionGenerator {
     fun getRandomBottom(activity: Activity): IntArray {
 
 
-        val width = activity.resources.displayMetrics.widthPixels
+        val width = 200
+//            activity.resources.displayMetrics.widthPixels
         val height = activity.resources.displayMetrics.heightPixels
 
 

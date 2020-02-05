@@ -3,7 +3,6 @@ package com.pongporn.chatview.utils
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.app.Activity
-import android.content.Context
 import android.text.format.DateFormat
 import org.jivesoftware.smack.packet.Message
 import org.jivesoftware.smackx.delay.packet.DelayInformation
@@ -19,8 +18,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import com.pongporn.chatview.R
-import com.pongporn.chatview.utils.EmoticonsExcample.Direction
-import com.pongporn.chatview.utils.EmoticonsExcample.ZeroGravityAnimation
+import com.pongporn.chatview.utils.EmoticonsExample.Direction
+import com.pongporn.chatview.utils.EmoticonsExample.ZeroGravityAnimation
 
 
 fun Int.convertMillisToDataTime() : String {
