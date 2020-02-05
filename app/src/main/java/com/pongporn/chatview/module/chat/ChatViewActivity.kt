@@ -85,6 +85,7 @@ class ChatViewActivity : AppCompatActivity() {
                 viewModel.addlistenerMulti()
             }
         }
+
     }
 
     override fun onStart() {

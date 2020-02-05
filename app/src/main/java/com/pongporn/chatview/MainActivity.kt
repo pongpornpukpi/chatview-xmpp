@@ -3,15 +3,16 @@ package com.pongporn.chatview
 import android.content.Context
 import android.content.Intent
 import android.os.AsyncTask
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.pongporn.chatview.module.chat.ChatViewActivity
 import com.pongporn.chatview.module.userlist.UserListActivity
 import com.pongporn.chatview.utils.XMPP
 import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
+
 
 
 class MainActivity : AppCompatActivity() {
