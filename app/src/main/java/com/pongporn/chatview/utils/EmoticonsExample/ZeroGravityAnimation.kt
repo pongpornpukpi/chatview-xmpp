@@ -147,10 +147,10 @@ class ZeroGravityAnimation {
 
                 val ottLayout = layer.with(activity)
                     .scale(mScalingFactor)
+                    .setType(mImageResId)
                     .attachTo(ottParent!!)
                     .setBitmap(scaledBitmap, startingPoints)
                     .create()
-
 
                 when (origin) {
 
@@ -161,10 +161,10 @@ class ZeroGravityAnimation {
 
                 var duration = mDuration
                 if (duration == RANDOM_DURATION) {
-                    duration = RandomUtil().generateRandomBetween(2500, 6500)
+                    duration = RandomUtil().generateRandomBetween(3500, 5500)
                 }
 
-                val animation = TranslateAnimation(0f, 100f, 0f, deltaY.toFloat())
+                val animation = TranslateAnimation(0f, 100f, 100f, deltaY.toFloat())
                 animation.duration = duration.toLong()
                 animation.setAnimationListener(object : Animation.AnimationListener {
                     override fun onAnimationStart(animation: Animation) {

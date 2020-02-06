@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.widget.FrameLayout
 import android.view.ViewGroup
 import android.app.Activity
+import android.content.Context
 import android.content.res.Resources
 import java.lang.ref.WeakReference
 import android.graphics.BitmapFactory
@@ -12,6 +13,13 @@ import android.view.Gravity
 import android.view.View
 import android.view.animation.Animation
 import android.widget.ImageView
+import android.widget.LinearLayout
+import androidx.core.content.ContextCompat
+import androidx.core.view.marginTop
+import androidx.core.view.setMargins
+import com.pongporn.chatview.R
+import com.pongporn.chatview.utils.CustomEmojiBang
+import xyz.hanks.library.bang.SmallBangView
 
 class OverTheTopLayer {
 
@@ -23,6 +31,8 @@ class OverTheTopLayer {
     private var mScalingFactor = 1.0f
     private var mDrawLocation = intArrayOf(0, 0)
     private var mBitmap: Bitmap? = null
+    private var mImageResId: Int? = 0
+    private lateinit var imageView: CustomEmojiBang
 
     fun OverTheTopLayer() {}
 
@@ -74,6 +84,11 @@ class OverTheTopLayer {
         return this
     }
 
+    fun setType(mImageResId: Int): OverTheTopLayer {
+        this.mImageResId = mImageResId
+        return this
+    }
+
     fun scale(scale: Float): OverTheTopLayer {
 
         if (scale <= 0) {
@@ -113,19 +128,67 @@ class OverTheTopLayer {
                 attachingView = activity.findViewById<ViewGroup>(android.R.id.content)
             }
 
-            val imageView = ImageView(activity)
+            imageView = CustomEmojiBang(activity)
 
-            imageView.setImageBitmap(mBitmap)
+            when (mImageResId) {
+                R.drawable.ic_like -> {
+                    imageView.setBackGround(R.drawable.selected_emolike)
+                    imageView.setColor(
+                        ContextCompat.getColor(activity, R.color.colorBlue),
+                        ContextCompat.getColor(activity, R.color.colorBlackBlue),
+                        activity.resources.getIntArray(R.array.colorDotLike)
+                    )
+                }
+                R.drawable.ic_love -> {
+                    imageView.setBackGround(R.drawable.selected_emolove)
+                    imageView.setColor(
+                        ContextCompat.getColor(activity, R.color.colorRed),
+                        ContextCompat.getColor(activity, R.color.colorBlackRed),
+                        activity.resources.getIntArray(R.array.colorDotLove)
+                    )
+                }
+                R.drawable.ic_sad -> {
+                    imageView.setBackGround(R.drawable.selected_emosad)
+                    imageView.setColor(
+                        ContextCompat.getColor(activity, R.color.colorYellow),
+                        ContextCompat.getColor(activity, R.color.colorBlackYellow),
+                        activity.resources.getIntArray(R.array.colorDotEmoticon)
+                    )
+                }
+                R.drawable.ic_wow -> {
+                    imageView.setBackGround(R.drawable.selected_emowow)
+                    imageView.setColor(
+                        ContextCompat.getColor(activity, R.color.colorYellow),
+                        ContextCompat.getColor(activity, R.color.colorBlackYellow),
+                        activity.resources.getIntArray(R.array.colorDotEmoticon)
+                    )
+                }
+                R.drawable.ic_angry -> {
+                    imageView.setBackGround(R.drawable.selected_emoangry)
+                    imageView.setColor(
+                        ContextCompat.getColor(activity, R.color.colorYellow),
+                        ContextCompat.getColor(activity, R.color.colorRed),
+                        activity.resources.getIntArray(R.array.colorDotAngry)
+                    )
+                }
+            }
 
-            val minWidth = mBitmap?.width
-            val minHeight = mBitmap?.height
+            val minWidth = mBitmap?.width!! * 2
+            val minHeight = mBitmap?.height!! * 2
 
             imageView.measure(
-                View.MeasureSpec.makeMeasureSpec(minWidth!!, View.MeasureSpec.AT_MOST),
-                View.MeasureSpec.makeMeasureSpec(minHeight!!, View.MeasureSpec.AT_MOST)
+                View.MeasureSpec.makeMeasureSpec(minWidth, View.MeasureSpec.AT_MOST),
+                View.MeasureSpec.makeMeasureSpec(minHeight, View.MeasureSpec.AT_MOST)
             )
 
-            var params: FrameLayout.LayoutParams? = imageView.layoutParams as FrameLayout.LayoutParams?
+            var params: FrameLayout.LayoutParams? =
+                imageView.layoutParams as FrameLayout.LayoutParams?
+
+            var smallBang = imageView.findViewById<FrameLayout>(R.id.small_bang)
+            smallBang.layoutParams = LinearLayout.LayoutParams(
+                mBitmap?.width!!,
+                mBitmap?.height!!
+            )
 
             if (params == null) {
                 params = FrameLayout.LayoutParams(
@@ -133,7 +196,6 @@ class OverTheTopLayer {
                     FrameLayout.LayoutParams.WRAP_CONTENT,
                     Gravity.TOP
                 )
-                imageView.layoutParams = params
             }
 
             val xPosition = mDrawLocation[0]
@@ -153,7 +215,6 @@ class OverTheTopLayer {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 Gravity.TOP
             )
-
             ottLayer.layoutParams = topLayerParam
 
             ottLayer.addView(imageView)
@@ -211,11 +272,16 @@ class OverTheTopLayer {
 
     }
 
-    fun applyAnimation(animation : Animation) {
+    fun applyAnimation(animation: Animation) {
 
-        if(mCreatedOttLayer != null) {
-            var drawnImageView : ImageView = mCreatedOttLayer?.getChildAt(0) as ImageView
-//            [enter image description here][1]
+        if (mCreatedOttLayer != null) {
+            val drawnImageView = mCreatedOttLayer?.getChildAt(0) as FrameLayout
+            val linearLayoutView = drawnImageView.getChildAt(0) as LinearLayout
+            val smallBangView = linearLayoutView.getChildAt(0) as SmallBangView
+            android.os.Handler().postDelayed({
+                smallBangView.isSelected = true
+                smallBangView.likeAnimation()
+            }, animation.duration / 2 + 300)
             drawnImageView.startAnimation(animation)
         }
     }

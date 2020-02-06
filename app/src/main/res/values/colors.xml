@@ -13,5 +13,39 @@
     <color name="black_opacity90">#E6000000</color>
     <color name="colorWhite">#FFFFFF</color>
     <color name="colorGray">#80808080</color>
+    <color name="colorBlue">#0076FF</color>
+    <color name="colorBlackBlue">#035FC9</color>
+    <color name="colorRed">#F0463A</color>
+    <color name="colorBlackRed">#D91305</color>
+    <color name="colorYellow">#FDDA74</color>
+    <color name="colorBlackYellow">#F6C124</color>
+
+    <array name="colorDotLike">
+        <item>@color/colorBlue</item>
+        <item>@color/colorBlackBlue</item>
+        <item>@color/colorBlue</item>
+        <item>@color/colorBlackBlue</item>
+    </array>
+
+    <array name="colorDotLove">
+        <item>@color/colorRed</item>
+        <item>@color/colorBlackRed</item>
+        <item>@color/colorRed</item>
+        <item>@color/colorBlackRed</item>
+    </array>
+
+    <array name="colorDotEmoticon">
+        <item>@color/colorYellow</item>
+        <item>@color/colorBlackYellow</item>
+        <item>@color/colorYellow</item>
+        <item>@color/colorBlackYellow</item>
+    </array>
+
+    <array name="colorDotAngry">
+        <item>@color/colorYellow</item>
+        <item>@color/colorBlackYellow</item>
+        <item>@color/colorRed</item>
+        <item>@color/colorBlackRed</item>
+    </array>
 
 </resources>
