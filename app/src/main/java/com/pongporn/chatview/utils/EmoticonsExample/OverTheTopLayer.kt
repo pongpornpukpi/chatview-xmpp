@@ -173,8 +173,8 @@ class OverTheTopLayer {
                 }
             }
 
-            val minWidth = mBitmap?.width!! * 2
-            val minHeight = mBitmap?.height!! * 2
+            val minWidth = mBitmap?.width!!
+            val minHeight = mBitmap?.height!!
 
             imageView.measure(
                 View.MeasureSpec.makeMeasureSpec(minWidth, View.MeasureSpec.AT_MOST),
