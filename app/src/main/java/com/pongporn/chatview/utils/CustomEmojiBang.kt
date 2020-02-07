@@ -12,6 +12,9 @@ import kotlinx.android.synthetic.main.item_emoji.view.*
 
 class CustomEmojiBang : FrameLayout {
 
+    var smallBangWidth = ""
+    var smallBangHeight = ""
+
     constructor(context: Context) : super(context) {
         initView(null)
     }
@@ -45,27 +48,36 @@ class CustomEmojiBang : FrameLayout {
     }
 
     private fun setupStyleable(attrs: AttributeSet?) {
+        if (attrs != null) {
+            val typedArray = context.obtainStyledAttributes(
+                attrs,
+                com.pongporn.chatview.R.styleable.CustomEmojiBang
+            )
+            smallBangWidth = typedArray.getString(R.styleable.CustomEmojiBang_small_width) ?: ""
+            smallBangHeight = typedArray.getString(R.styleable.CustomEmojiBang_small_height) ?: ""
 
+            typedArray.recycle()
+        }
     }
 
     private fun setupView() {
 
     }
 
-    fun setImageBitmap(bitmap : Bitmap?) {
+    fun setImageBitmap(bitmap: Bitmap?) {
         img_emoji_popup.setImageBitmap(bitmap)
 
     }
 
-    fun setLnBackground(resId : Int) {
+    fun setLnBackground(resId: Int) {
         ln_item_emoji.setBackgroundColor(resId)
     }
 
-    fun setBackGround(resId : Int) {
+    fun setBackGround(resId: Int) {
         img_emoji_popup.setBackgroundResource(resId)
     }
 
-    fun setColor(colorStartCircle : Int ,colorEndCircle : Int,colorDot : IntArray) {
+    fun setColor(colorStartCircle: Int, colorEndCircle: Int, colorDot: IntArray) {
         small_bang.setCircleStartColor(colorStartCircle)
         small_bang.setCircleEndColor(colorEndCircle)
         small_bang.setDotColors(colorDot)
