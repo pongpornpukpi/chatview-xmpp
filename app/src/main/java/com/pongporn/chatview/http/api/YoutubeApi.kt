@@ -1,15 +1,32 @@
 package com.pongporn.chatview.http.api
 
+import com.pongporn.chatview.http.request.InsertVideoLiveChatMessageRequest
+import com.pongporn.chatview.http.response.InsertVideoLiveMessage
 import com.pongporn.chatview.http.response.VideoDataResponseModel
+import com.pongporn.chatview.http.response.VideoLiveMessageResponse
+import com.pongporn.chatview.http.response.VideoLiveStreamingDetailResponseModel
 import io.reactivex.Observable
 import io.reactivex.Observer
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface YoutubeApi {
 
     @GET("videos")
-    fun getViedoDisplay(@Query("id") id : String, @Query("key") key : String, @Query("part") part : String = "snippet") : Observable<VideoDataResponseModel>
+    fun getViedoData(@Query("id") id : String, @Query("key") key : String, @Query("part") part : String = "snippet") : Observable<VideoDataResponseModel>
 
+    @GET("videos")
+    fun getViedoLiveStraming(@Query("id") id : String, @Query("key") key : String, @Query("part") part : String = "liveStreamingDetails") : Observable<VideoLiveStreamingDetailResponseModel>
+
+    @GET("liveChat/messages")
+    fun getMessageLiveStreaming(@Query("liveChatId") id : String, @Query("key") key : String, @Query("part") part : String = "snippet") : Observable<VideoLiveMessageResponse>
+
+    @GET("liveChat/messages")
+    fun getMessageLiveStreamingRealTime(@Query("liveChatId") id : String, @Query("key") key : String, @Query("part") part : String = "snippet", @Query("pageToken") pageToken : String) : Observable<VideoLiveMessageResponse>
+
+    @POST("liveChat/messages")
+    fun insertLiveChatMessages(@Query("part") part : String = "snippet", @Query("key") key : String,@Body insertVideoLiveChatMessageRequest: InsertVideoLiveChatMessageRequest) : Observable<InsertVideoLiveMessage>
 }

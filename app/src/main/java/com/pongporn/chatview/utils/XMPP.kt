@@ -186,14 +186,5 @@ class XMPP {
         return multiUserChat?.isJoined
     }
 
-    fun showSoftKeyboard(activity : Activity) {
-        val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(activity.currentFocus, InputMethodManager.SHOW_IMPLICIT)
-    }
-
-    fun hideSoftKeyboard(activity: Activity) {
-        val inputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(activity.currentFocus?.windowToken, 0)
-    }
 
 }

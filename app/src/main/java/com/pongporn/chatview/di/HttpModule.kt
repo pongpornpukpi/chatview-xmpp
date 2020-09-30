@@ -2,6 +2,7 @@ package com.pongporn.chatview.di
 
 import android.content.Context
 import com.pongporn.chatview.BuildConfig
+import com.pongporn.chatview.http.api.GoogleApi
 import com.pongporn.chatview.http.api.YoutubeApi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -16,6 +17,7 @@ fun provideHttpModule() = module {
     factory { provideOkHttpClient() }
     factory { provideRetrofit(androidContext(),get()) }
     factory { provideYoutubeChatAPI(get()) }
+    factory { provideGoogleAPI(get()) }
 }
 
 fun provideOkHttpClient(): OkHttpClient {
@@ -45,4 +47,10 @@ fun provideRetrofit(context: Context, okHttpClient: OkHttpClient): Retrofit {
 
 fun provideYoutubeChatAPI(retrofit: Retrofit) : YoutubeApi {
     return retrofit.create(YoutubeApi::class.java)
+}
+
+fun provideGoogleAPI(retrofit: Retrofit) : GoogleApi {
+    val service = retrofit.create(GoogleApi::class.java)
+//    service.oAuthGoogleAPI("https://accounts.google.com/o/oauth2/auth")
+    return service
 }

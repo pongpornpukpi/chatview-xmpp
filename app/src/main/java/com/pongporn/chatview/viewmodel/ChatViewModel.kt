@@ -7,8 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pongporn.chatview.database.ChatDatabase
 import com.pongporn.chatview.database.entity.HistoryChatEntity
+import com.pongporn.chatview.http.api.GoogleApi
 import com.pongporn.chatview.http.api.YoutubeApi
+import com.pongporn.chatview.http.request.InsertVideoLiveChatMessageRequest
+import com.pongporn.chatview.http.response.InsertVideoLiveMessage
 import com.pongporn.chatview.http.response.VideoDataResponseModel
+import com.pongporn.chatview.http.response.VideoLiveMessageResponse
+import com.pongporn.chatview.http.response.VideoLiveStreamingDetailResponseModel
 import com.pongporn.chatview.model.ChatMessageModel
 import com.pongporn.chatview.utils.*
 import io.reactivex.Observable
@@ -34,7 +39,8 @@ class ChatViewModel constructor(
     var xmpp: XMPP,
     var chatDatabase: ChatDatabase,
     var pref: PreferenceUtils,
-    var youtubeApi: YoutubeApi
+    var youtubeApi: YoutubeApi,
+    var googleApi: GoogleApi
 ) : ViewModel(),
     CoroutineScope {
 
@@ -49,17 +55,24 @@ class ChatViewModel constructor(
     var uid: String? = null
     var doMoreLoading: Boolean? = false
     var messageStr: ChatMessageModel? = null
+    var nextPageToken = ""
     private val listHistory = mutableListOf<ChatMessageModel>()
 
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
     private val messageliveData: MutableLiveData<ChatMessageModel> by lazy { MutableLiveData<ChatMessageModel>() }
-    private val videoData: MutableLiveData<VideoDataResponseModel> by lazy { MutableLiveData<VideoDataResponseModel>() }
+    private val videoLiveStreamingDetail: MutableLiveData<VideoLiveStreamingDetailResponseModel> by lazy { MutableLiveData<VideoLiveStreamingDetailResponseModel>() }
+    private val videoLiveStreamingMessage: MutableLiveData<VideoLiveMessageResponse> by lazy { MutableLiveData<VideoLiveMessageResponse>() }
+    private val videoLiveStreamingMessageRealTime: MutableLiveData<VideoLiveMessageResponse> by lazy { MutableLiveData<VideoLiveMessageResponse>() }
     private val messageHistoryList = MutableLiveData<List<ChatMessageModel>>()
+    private val insertLiveChat: MutableLiveData<InsertVideoLiveMessage> by lazy { MutableLiveData<InsertVideoLiveMessage>() }
 
     fun getmessage(): LiveData<ChatMessageModel> = messageliveData
-    fun getVideoData(): LiveData<VideoDataResponseModel> = videoData
+    fun getVideoLiveStreamDetail(): LiveData<VideoLiveStreamingDetailResponseModel> = videoLiveStreamingDetail
+    fun getVideoLiveStreamMessage(): LiveData<VideoLiveMessageResponse> = videoLiveStreamingMessage
+    fun getVideoLiveStreamMessageRealTime(): LiveData<VideoLiveMessageResponse> = videoLiveStreamingMessageRealTime
+    fun insertLiveChat(): LiveData<InsertVideoLiveMessage> = insertLiveChat
     fun getmessageHistory(): LiveData<List<ChatMessageModel>> = messageHistoryList
 
     fun addlistenerMulti() {
@@ -137,12 +150,76 @@ class ChatViewModel constructor(
         compositeDis.add(disposable!!)
     }
 
-    fun getVideoDataRequest(id: String, key: String, part: String) {
-        compositeDis.add(youtubeApi.getViedoDisplay(id, key, part).subscribeOn(Schedulers.io())
+    fun getVideoLiveStreamingDetailRequest(id: String,key: String, part: String) {
+        compositeDis.add(youtubeApi.getViedoLiveStraming(id,key, part).subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError {
+                println("Error : ${it.printStackTrace()}")
+            }
+            .subscribe {
+                videoLiveStreamingDetail.postValue(it)
+            }
+        )
+    }
+
+    fun getVideoLiveMessageRequest(id: String,key: String, part: String) {
+        compositeDis.add(youtubeApi.getMessageLiveStreaming(id,key, part).subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError {
+                println("Error : ${it.printStackTrace()}")
+            }
+            .subscribe {
+                videoLiveStreamingMessage.postValue(it)
+            })
+    }
+
+    fun insertVideoLiveMessage(part: String,key: String,request: InsertVideoLiveChatMessageRequest) {
+        compositeDis.add(youtubeApi.insertLiveChatMessages(part,key,request).subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError {
+                println("Error : ${it.printStackTrace()}")
+            }
+            .subscribe {
+                insertLiveChat.postValue(it)
+            })
+    }
+
+    fun authGoogle() {
+        compositeDis.add(googleApi.oAuthGoogleAPI().subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError {
+                println("Error : ${it.printStackTrace()}")
+            }
+            .subscribe {
+                println("Auth $it")
+            })
+    }
+
+    fun getVideoLiveMessageRealTimeRequest(id: String,key: String, part: String,time : Long,nextPageToken : String) {
+//        compositeDis.add(youtubeApi.getMessageLiveStreaming(id,key, part).subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe {
+//                videoLiveStreamingMessage.postValue(it)
+//            })
+
+        this.nextPageToken = nextPageToken
+
+        disposable = Observable.interval(time, time, TimeUnit.MILLISECONDS)
+            .timeInterval()
+            .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                videoData.postValue(it)
-            })
+                youtubeApi.getMessageLiveStreamingRealTime(id,key, part,this.nextPageToken).subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe {
+                        videoLiveStreamingMessageRealTime.postValue(it)
+                    }
+            }
+        compositeDis.add(disposable!!)
+    }
+
+    fun updateNextPageToken(nextPageToken : String) {
+        this.nextPageToken = nextPageToken
     }
 
     fun loadHistory() {

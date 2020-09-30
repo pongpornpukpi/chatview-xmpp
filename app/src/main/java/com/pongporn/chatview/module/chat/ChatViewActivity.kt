@@ -1,5 +1,7 @@
 package com.pongporn.chatview.module.chat
 
+import android.app.Activity
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
@@ -8,6 +10,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -22,7 +25,11 @@ import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerSupportFragment
 import com.pongporn.chatview.R
 import com.pongporn.chatview.database.ChatDatabase
+import com.pongporn.chatview.http.request.InsertVideoLiveChatMessageRequest
+import com.pongporn.chatview.http.response.InsertVideoLiveMessage
 import com.pongporn.chatview.http.response.VideoDataResponseModel
+import com.pongporn.chatview.http.response.VideoLiveMessageResponse
+import com.pongporn.chatview.http.response.VideoLiveStreamingDetailResponseModel
 import com.pongporn.chatview.model.ChatMessageModel
 import com.pongporn.chatview.module.userlist.UserListModel
 import com.pongporn.chatview.utils.*
@@ -44,9 +51,11 @@ class ChatViewActivity : AppCompatActivity() {
 
     companion object {
         const val USER_NAME = "user_name"
-        const val VIDEO_ID = "Z8NdLhqYk_A"
+        const val VIDEO_ID = "AsIcGaP7jEs"
         //        Sa2rsOxEtIA,Z8NdLhqYk_A
-        const val YOUTUBE_API_KEY = "AIzaSyAAvHB1OGvfLpgwLVvKMY3Li58g4XtGZGk"
+        const val YOUTUBE_API_KEY = "AIzaSyCREryqmD9Poj4GDu3nguG9zWn-aZBftHI"
+        // AIzaSyAAvHB1OGvfLpgwLVvKMY3Li58g4XtGZGk เก่า
+        // AIzaSyCREryqmD9Poj4GDu3nguG9zWn-aZBftHI ใหม่
     }
 
     private val xmpp: XMPP by inject()
@@ -66,6 +75,7 @@ class ChatViewActivity : AppCompatActivity() {
     private var emoticonSubscription: Subscription? = null
     private var subscriber: Subscriber<Timed<Emoticons>>? = null
     private val MINIMUM_DURATION_BETWEEN_EMOTICONS = 300 // in milliseconds
+    private var activeLiveChatId = ""
 
     private var emoticonClickAnimation: Animation? = null
 
@@ -77,14 +87,14 @@ class ChatViewActivity : AppCompatActivity() {
         initListener()
         initView()
         ButterKnife.bind(this)
-        if (userList?.isGroup == true) {
-            xmpp.onCreateMultiChatGroupRoom(userList?.name)
-            xmpp.onJoinMultiChatGroupRoom()
-            xmpp.initMam()
-            if (xmpp.isJoined() == true) {
-                viewModel.addlistenerMulti()
-            }
-        }
+//        if (userList?.isGroup == true) {
+//            xmpp.onCreateMultiChatGroupRoom(userList?.name)
+//            xmpp.onJoinMultiChatGroupRoom()
+//            xmpp.initMam()
+//            if (xmpp.isJoined() == true) {
+//                viewModel.addlistenerMulti()
+//            }
+//        }
 
     }
 
@@ -246,7 +256,7 @@ class ChatViewActivity : AppCompatActivity() {
         }
 
         tv_editText.setOnClickListener {
-            xmpp.showSoftKeyboard(this)
+            showSoftKeyboard(this)
             ln_chat_view.visibility = View.VISIBLE
             et_comment.requestFocus()
         }
@@ -257,15 +267,20 @@ class ChatViewActivity : AppCompatActivity() {
 
         et_comment.setHandleDismissingKeyboard(object : CustomEditText.onHandleDismissingKeyboard {
             override fun dismissKeyboard() {
-                xmpp.hideSoftKeyboard(this@ChatViewActivity)
+                hideSoftKeyboard(this@ChatViewActivity)
                 ln_chat_view.visibility = View.INVISIBLE
             }
         })
 
         btn_post.setOnClickListener {
-            xmpp.multiChatSendMessage(et_comment.text.toString())
+            val request = InsertVideoLiveChatMessageRequest()
+            request.snippet?.liveChatId = activeLiveChatId
+            request.snippet?.type = "textMessageEvent"
+            request.snippet?.textMessageDetails?.messageText = et_comment.text.toString()
+            viewModel.insertVideoLiveMessage(part = "snippet", key = YOUTUBE_API_KEY, request = request)
+//            xmpp.multiChatSendMessage(et_comment.text.toString())
             et_comment.setText("")
-            xmpp.hideSoftKeyboard(this@ChatViewActivity)
+            hideSoftKeyboard(this@ChatViewActivity)
             ln_chat_view.visibility = View.INVISIBLE
         }
     }
@@ -303,36 +318,93 @@ class ChatViewActivity : AppCompatActivity() {
     }
 
     private fun initObserver() {
-        viewModel.getmessage().observe(this, Observer<ChatMessageModel> {
-            recyclerview_chat.scrollToPosition(0)
-            chatAdapter.addOne(ChatMessageModel("", "", ""))
-            chatAdapter.notifyDataSetChanged()
-            Handler().postDelayed({
-                chatAdapter.removeLastList()
-                chatAdapter.addOne(it)
-                recyclerview_chat.scrollToPosition(0)
-            }, 500)
-        })
+//        viewModel.getmessage().observe(this, Observer<ChatMessageModel> {
+//            recyclerview_chat.scrollToPosition(0)
+//            chatAdapter.addOne(ChatMessageModel("", "", ""))
+//            chatAdapter.notifyDataSetChanged()
+//            Handler().postDelayed({
+//                chatAdapter.removeLastList()
+//                chatAdapter.addOne(it)
+//                recyclerview_chat.scrollToPosition(0)
+//            }, 500)
+//        })
 
-        viewModel.getVideoData().observe(this, Observer<VideoDataResponseModel> {
-            if (it.items?.get(0)?.snippet?.liveBroadcastContent.equals("none")) {
-                viewModel.loadHistory()
-            }
-        })
+        viewModel.authGoogle()
 
-        viewModel.getmessageHistory().observe(this, Observer<List<ChatMessageModel>> {
+        viewModel.getVideoLiveStreamDetail()
+            .observe(this, Observer<VideoLiveStreamingDetailResponseModel> {
+                println("Youtube LiveDetail := $it")
+                activeLiveChatId = it.items?.get(0)?.liveStreamingDetails?.activeLiveChatId!!
+                viewModel.getVideoLiveMessageRequest(
+                    id = it.items?.get(0)?.liveStreamingDetails?.activeLiveChatId!!,
+                    key = YOUTUBE_API_KEY,
+                    part = "snippet"
+                )
+            })
+
+        viewModel.getVideoLiveStreamMessage().observe(this, Observer<VideoLiveMessageResponse> {
+            println("Youtube LiveMessage := $it")
             chatList.clear()
-            chatList.addAll(it)
+            it.items?.forEach {
+                chatList.add(
+                    ChatMessageModel(
+                        timestamp = it.snippet?.publishedAt,
+                        message = it.snippet?.displayMessage,
+                        name = ""
+                    )
+                )
+            }
             chatAdapter.clearList()
             chatAdapter.addlist(chatList)
+            recyclerview_chat.scrollToPosition(chatList.size - 1)
+            viewModel.getVideoLiveMessageRealTimeRequest(
+                id = activeLiveChatId,
+                key = YOUTUBE_API_KEY,
+                part = "snippet",
+                time = it.pollingIntervalMillis!!,
+                nextPageToken = it.nextPageToken!!
+            )
         })
 
-        viewModel.getVideoDataRequest(id = VIDEO_ID, key = YOUTUBE_API_KEY, part = "snippet")
+        viewModel.getVideoLiveStreamMessageRealTime()
+            .observe(this, Observer<VideoLiveMessageResponse> {
+                println("Youtube LiveMessage RealTime := $it")
+                viewModel.updateNextPageToken(it.nextPageToken!!)
+                it.items?.forEach {
+                    chatList.add(
+                        ChatMessageModel(
+                            timestamp = it.snippet?.publishedAt,
+                            message = it.snippet?.displayMessage,
+                            name = ""
+                        )
+                    )
+                }
+                chatAdapter.clearList()
+                chatAdapter.addlist(chatList)
+                recyclerview_chat.scrollToPosition(chatList.size - 1)
+            })
+
+        viewModel.insertLiveChat().observe(this, Observer<InsertVideoLiveMessage> {
+            println("Youtube Insert LiveChat := $it")
+        })
+
+//        viewModel.getmessageHistory().observe(this, Observer<List<ChatMessageModel>> {
+//            chatList.clear()
+//            chatList.addAll(it)
+//            chatAdapter.clearList()
+//            chatAdapter.addlist(chatList)
+//        })
+
+        viewModel.getVideoLiveStreamingDetailRequest(
+            id = VIDEO_ID,
+            key = YOUTUBE_API_KEY,
+            part = "liveStreamingDetails"
+        )
     }
 
     private fun initView() {
         recyclerview_chat.apply {
-            layoutManager = LinearLayoutManager(this@ChatViewActivity, RecyclerView.VERTICAL, true)
+            layoutManager = LinearLayoutManager(this@ChatViewActivity, RecyclerView.VERTICAL, false)
             adapter = chatAdapter
 
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -386,9 +458,21 @@ class ChatViewActivity : AppCompatActivity() {
         emitter.onNext(emoticons)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        xmpp.leaveChatRoom(viewModel.listenerMessage)
-        chatDatabase.historyChatDao().deleteHistoryChat()
+//    override fun onDestroy() {
+//        super.onDestroy()
+//        xmpp.leaveChatRoom(viewModel.listenerMessage)
+//        chatDatabase.historyChatDao().deleteHistoryChat()
+//    }
+
+
+    fun showSoftKeyboard(activity: Activity) {
+        val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(activity.currentFocus, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    fun hideSoftKeyboard(activity: Activity) {
+        val inputMethodManager =
+            activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(activity.currentFocus?.windowToken, 0)
     }
 }
