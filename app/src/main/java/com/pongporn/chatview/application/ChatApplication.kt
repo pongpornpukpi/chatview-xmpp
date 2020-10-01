@@ -13,6 +13,8 @@ import org.koin.core.context.startKoin
 
 class ChatApplication : Application() {
 
+    val LOG_TAG = "AppAuthSample"
+
     override fun onCreate() {
         super.onCreate()
         KPreferenceManager.initialize(this@ChatApplication)

@@ -173,8 +173,8 @@ class ChatViewModel constructor(
             })
     }
 
-    fun insertVideoLiveMessage(part: String,key: String,request: InsertVideoLiveChatMessageRequest) {
-        compositeDis.add(youtubeApi.insertLiveChatMessages(part,key,request).subscribeOn(Schedulers.io())
+    fun insertVideoLiveMessage(accessToken : String,part: String,key: String,request: InsertVideoLiveChatMessageRequest) {
+        compositeDis.add(youtubeApi.insertLiveChatMessages(accessToken,part,key,request).subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnError {
                 println("Error : ${it.printStackTrace()}")

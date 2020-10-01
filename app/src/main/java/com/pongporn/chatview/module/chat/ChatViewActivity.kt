@@ -76,6 +76,7 @@ class ChatViewActivity : AppCompatActivity() {
     private var subscriber: Subscriber<Timed<Emoticons>>? = null
     private val MINIMUM_DURATION_BETWEEN_EMOTICONS = 300 // in milliseconds
     private var activeLiveChatId = ""
+    val preferenceUtils : PreferenceUtils by inject()
 
     private var emoticonClickAnimation: Animation? = null
 
@@ -273,11 +274,12 @@ class ChatViewActivity : AppCompatActivity() {
         })
 
         btn_post.setOnClickListener {
+            var ACCESS_TOKEN = preferenceUtils.ACCESS_TOKEN
             val request = InsertVideoLiveChatMessageRequest()
             request.snippet?.liveChatId = activeLiveChatId
             request.snippet?.type = "textMessageEvent"
             request.snippet?.textMessageDetails?.messageText = et_comment.text.toString()
-            viewModel.insertVideoLiveMessage(part = "snippet", key = YOUTUBE_API_KEY, request = request)
+            viewModel.insertVideoLiveMessage(accessToken = "Bearer $ACCESS_TOKEN",part = "snippet", key = YOUTUBE_API_KEY, request = request)
 //            xmpp.multiChatSendMessage(et_comment.text.toString())
             et_comment.setText("")
             hideSoftKeyboard(this@ChatViewActivity)
@@ -329,7 +331,7 @@ class ChatViewActivity : AppCompatActivity() {
 //            }, 500)
 //        })
 
-        viewModel.authGoogle()
+//        viewModel.authGoogle()
 
         viewModel.getVideoLiveStreamDetail()
             .observe(this, Observer<VideoLiveStreamingDetailResponseModel> {

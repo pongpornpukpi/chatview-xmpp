@@ -8,10 +8,7 @@ import com.pongporn.chatview.http.response.VideoLiveStreamingDetailResponseModel
 import io.reactivex.Observable
 import io.reactivex.Observer
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.*
 
 interface YoutubeApi {
 
@@ -28,5 +25,5 @@ interface YoutubeApi {
     fun getMessageLiveStreamingRealTime(@Query("liveChatId") id : String, @Query("key") key : String, @Query("part") part : String = "snippet", @Query("pageToken") pageToken : String) : Observable<VideoLiveMessageResponse>
 
     @POST("liveChat/messages")
-    fun insertLiveChatMessages(@Query("part") part : String = "snippet", @Query("key") key : String,@Body insertVideoLiveChatMessageRequest: InsertVideoLiveChatMessageRequest) : Observable<InsertVideoLiveMessage>
+    fun insertLiveChatMessages(@Header("Authorization") accessToken : String, @Query("part") part : String = "snippet", @Query("key") key : String, @Body insertVideoLiveChatMessageRequest: InsertVideoLiveChatMessageRequest) : Observable<InsertVideoLiveMessage>
 }
