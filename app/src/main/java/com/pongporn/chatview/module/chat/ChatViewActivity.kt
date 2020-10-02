@@ -3,22 +3,19 @@ package com.pongporn.chatview.module.chat
 import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
+import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
-import android.view.MenuItem
 import android.view.View
 import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import butterknife.ButterKnife
-import com.airbnb.lottie.LottieAnimationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
@@ -27,7 +24,6 @@ import com.pongporn.chatview.R
 import com.pongporn.chatview.database.ChatDatabase
 import com.pongporn.chatview.http.request.InsertVideoLiveChatMessageRequest
 import com.pongporn.chatview.http.response.InsertVideoLiveMessage
-import com.pongporn.chatview.http.response.VideoDataResponseModel
 import com.pongporn.chatview.http.response.VideoLiveMessageResponse
 import com.pongporn.chatview.http.response.VideoLiveStreamingDetailResponseModel
 import com.pongporn.chatview.model.ChatMessageModel
@@ -42,6 +38,10 @@ import io.reactivex.FlowableEmitter
 import io.reactivex.FlowableOnSubscribe
 import io.reactivex.schedulers.Timed
 import kotlinx.android.synthetic.main.activity_chat_view.*
+import net.openid.appauth.AuthState
+import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationService
+import org.json.JSONObject
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.reactivestreams.Subscriber
@@ -52,6 +52,8 @@ class ChatViewActivity : AppCompatActivity() {
     companion object {
         const val USER_NAME = "user_name"
         const val VIDEO_ID = "AsIcGaP7jEs"
+        // AsIcGaP7jEs Song
+        // T-zGsR6ygow HRK
         //        Sa2rsOxEtIA,Z8NdLhqYk_A
         const val YOUTUBE_API_KEY = "AIzaSyCREryqmD9Poj4GDu3nguG9zWn-aZBftHI"
         // AIzaSyAAvHB1OGvfLpgwLVvKMY3Li58g4XtGZGk เก่า
@@ -76,7 +78,8 @@ class ChatViewActivity : AppCompatActivity() {
     private var subscriber: Subscriber<Timed<Emoticons>>? = null
     private val MINIMUM_DURATION_BETWEEN_EMOTICONS = 300 // in milliseconds
     private var activeLiveChatId = ""
-    val preferenceUtils : PreferenceUtils by inject()
+    val preferenceUtils: PreferenceUtils by inject()
+    var mAuthState: AuthState? = null
 
     private var emoticonClickAnimation: Animation? = null
 
@@ -275,11 +278,38 @@ class ChatViewActivity : AppCompatActivity() {
 
         btn_post.setOnClickListener {
             var ACCESS_TOKEN = preferenceUtils.ACCESS_TOKEN
+//            var jsonString = preferenceUtils.AUTH_STATE
+//            var mAuthorizationService: AuthorizationService? = null
+//            mAuthorizationService = AuthorizationService(this)
+//            if (jsonString.isEmpty()) {
+//                try {
+//                    mAuthState = AuthState.fromJson(jsonString)
+//                } catch (e: Exception) {
+//
+//                }
+//            }
             val request = InsertVideoLiveChatMessageRequest()
             request.snippet?.liveChatId = activeLiveChatId
             request.snippet?.type = "textMessageEvent"
             request.snippet?.textMessageDetails?.messageText = et_comment.text.toString()
-            viewModel.insertVideoLiveMessage(accessToken = "Bearer $ACCESS_TOKEN",part = "snippet", key = YOUTUBE_API_KEY, request = request)
+//            mAuthState?.performActionWithFreshTokens(mAuthorizationService,
+//                object : AuthState.AuthStateAction {
+//                    override fun execute(p0: String?, p1: String?, p2: AuthorizationException?) {
+//                        object :AsyncTask<String,Void,JSONObject>() {
+//                            override fun doInBackground(vararg p0: String?): JSONObject {
+//return
+//                            }
+//
+//                        }
+                        viewModel.insertVideoLiveMessage(
+                            accessToken = "Bearer $ACCESS_TOKEN",
+                            part = "snippet",
+                            key = YOUTUBE_API_KEY,
+                            request = request
+                        )
+//                    }
+//                })
+
 //            xmpp.multiChatSendMessage(et_comment.text.toString())
             et_comment.setText("")
             hideSoftKeyboard(this@ChatViewActivity)

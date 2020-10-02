@@ -24,12 +24,12 @@ class MainActivity : AppCompatActivity() {
 
     private var name: String? = ""
     private var password: String? = ""
-    private var nameRoom : String? = ""
+    private var nameRoom: String? = ""
     private val xmpp: XMPP by inject()
     private val USED_INTENT = "USED_INTENT"
     private val SHARED_PREFERENCES_NAME = "AuthStatePreference"
     private val AUTH_STATE = "AUTH_STATE"
-    val preferenceUtils : PreferenceUtils by inject()
+    val preferenceUtils: PreferenceUtils by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,50 +101,54 @@ class MainActivity : AppCompatActivity() {
 
     private fun persistAuthState(@NonNull authState: AuthState) {
         preferenceUtils.ACCESS_TOKEN = authState.accessToken!!
+        preferenceUtils.AUTH_STATE = authState.toJsonString()
+        preferenceUtils.isGoogleLogin = true
         //    enablePostAuthorizationFlows();
 //                    fast pass Kia
-            val intent = Intent(this@MainActivity, ChatViewActivity::class.java)
-            intent.putExtra(UserListActivity.NAME_USER, name)
-            intent.putExtra(UserListActivity.NAME_ROOM,nameRoom)
-            startActivity(intent)
+        val intent = Intent(this@MainActivity, ChatViewActivity::class.java)
+        intent.putExtra(UserListActivity.NAME_USER, name)
+        intent.putExtra(UserListActivity.NAME_ROOM, nameRoom)
+        startActivity(intent)
     }
 
     private fun initClick() {
         button.setOnClickListener {
 
-            val serviceConfiguration =
-                AuthorizationServiceConfiguration(
-                    Uri.parse("https://accounts.google.com/o/oauth2/v2/auth") /* auth endpoint */,
-                    Uri.parse("https://www.googleapis.com/oauth2/v4/token") /* token endpoint */
+            if (!preferenceUtils.isGoogleLogin) {
+                val serviceConfiguration =
+                    AuthorizationServiceConfiguration(
+                        Uri.parse("https://accounts.google.com/o/oauth2/v2/auth") /* auth endpoint */,
+                        Uri.parse("https://www.googleapis.com/oauth2/v4/token") /* token endpoint */
+                    )
+                val clientId =
+                    "694211781230-dp7su021ospdighpbbbgdtc8s516u6ob.apps.googleusercontent.com"
+                val redirectUri =
+                    Uri.parse("com.pongporn.chatview:/oauth2callback")
+                val builder = AuthorizationRequest.Builder(
+                    serviceConfiguration,
+                    clientId,
+                    AuthorizationRequest.RESPONSE_TYPE_CODE,
+                    redirectUri
                 )
-            val clientId =
-                "694211781230-dp7su021ospdighpbbbgdtc8s516u6ob.apps.googleusercontent.com"
-            val redirectUri =
-                Uri.parse("com.pongporn.chatview:/oauth2callback")
-            val builder = AuthorizationRequest.Builder(
-                serviceConfiguration,
-                clientId,
-                AuthorizationRequest.RESPONSE_TYPE_CODE,
-                redirectUri
-            )
-            builder.setScopes("https://www.googleapis.com/auth/youtube")
-            val request = builder.build()
-            val authorizationService = AuthorizationService(this)
-            val action = "com.pongporn.chatview.HANDLE_AUTHORIZATION_RESPONSE"
-            val postAuthorizationIntent = Intent(action)
-            val pendingIntent = PendingIntent.getActivity(
-                this,
-                request.hashCode(),
-                postAuthorizationIntent,
-                0
-            )
-            authorizationService.performAuthorizationRequest(request, pendingIntent)
-
-//            fast pass Kia
-//            val intent = Intent(this@MainActivity, ChatViewActivity::class.java)
-//            intent.putExtra(UserListActivity.NAME_USER, name)
-//            intent.putExtra(UserListActivity.NAME_ROOM,nameRoom)
-//            startActivity(intent)
+                builder.setScopes("https://www.googleapis.com/auth/youtube")
+                val request = builder.build()
+                val authorizationService = AuthorizationService(this)
+                val action = "com.pongporn.chatview.HANDLE_AUTHORIZATION_RESPONSE"
+                val postAuthorizationIntent = Intent(action)
+                val pendingIntent = PendingIntent.getActivity(
+                    this,
+                    request.hashCode(),
+                    postAuthorizationIntent,
+                    0
+                )
+                authorizationService.performAuthorizationRequest(request, pendingIntent)
+            } else {
+//                          fast pass Kia
+                val intent = Intent(this@MainActivity, ChatViewActivity::class.java)
+                intent.putExtra(UserListActivity.NAME_USER, name)
+                intent.putExtra(UserListActivity.NAME_ROOM, nameRoom)
+                startActivity(intent)
+            }
 
 //            if (editText.text.toString().isNotEmpty() && editText.text.contains("@")) {
 //                name = editText.text.toString().split("@")[0]
@@ -171,45 +175,45 @@ class MainActivity : AppCompatActivity() {
 //        }
     }
 
-    class MyLoginTask(
-        private var context: Context,
-        private val xmpp: XMPP
-    ) : AsyncTask<String, String, String>() {
-
-        private var name: String? = ""
-        private var password: String? = ""
-        private var nameRoom : String? = ""
-
-        fun setUsernameAndPassword(
-            name: String?,
-            password: String?,
-            nameRoom: String?
-        ) {
-            this.name = name
-            this.password = password
-            this.nameRoom = nameRoom
-        }
-
-        override fun doInBackground(vararg p0: String?): String {
-            xmpp.XMPPConnecttion(name, password,context)
-            xmpp.XMPPConnect()
-            xmpp.XMPPLogin()
-
-            return ""
-        }
-
-        override fun onPostExecute(result: String?) {
-            super.onPostExecute(result)
-            if (xmpp.isAuthenticate()) {
-                val intent = Intent(context, UserListActivity::class.java)
-                intent.putExtra(UserListActivity.NAME_USER, name)
-                intent.putExtra(UserListActivity.NAME_ROOM,nameRoom)
-                context.startActivity(intent)
-            }
-        }
-
-        override fun onPreExecute() {
-            super.onPreExecute()
-        }
-    }
+//    class MyLoginTask(
+//        private var context: Context,
+//        private val xmpp: XMPP
+//    ) : AsyncTask<String, String, String>() {
+//
+//        private var name: String? = ""
+//        private var password: String? = ""
+//        private var nameRoom : String? = ""
+//
+//        fun setUsernameAndPassword(
+//            name: String?,
+//            password: String?,
+//            nameRoom: String?
+//        ) {
+//            this.name = name
+//            this.password = password
+//            this.nameRoom = nameRoom
+//        }
+//
+//        override fun doInBackground(vararg p0: String?): String {
+//            xmpp.XMPPConnecttion(name, password,context)
+//            xmpp.XMPPConnect()
+//            xmpp.XMPPLogin()
+//
+//            return ""
+//        }
+//
+//        override fun onPostExecute(result: String?) {
+//            super.onPostExecute(result)
+//            if (xmpp.isAuthenticate()) {
+//                val intent = Intent(context, UserListActivity::class.java)
+//                intent.putExtra(UserListActivity.NAME_USER, name)
+//                intent.putExtra(UserListActivity.NAME_ROOM,nameRoom)
+//                context.startActivity(intent)
+//            }
+//        }
+//
+//        override fun onPreExecute() {
+//            super.onPreExecute()
+//        }
+//    }
 }

@@ -21,7 +21,7 @@ fun provideDatabase() = module {
 }
 
 fun provideUIModule() = module {
-    factory { MainActivity.MyLoginTask(androidContext(), get()) }
+//    factory { MainActivity.MyLoginTask(androidContext(), get()) }
     factory { MainActivity() }
     factory { ChatViewActivity() }
     factory { UserListActivity() }
