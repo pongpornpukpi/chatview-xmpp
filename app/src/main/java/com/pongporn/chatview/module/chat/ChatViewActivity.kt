@@ -41,6 +41,9 @@ import kotlinx.android.synthetic.main.activity_chat_view.*
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationService
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONObject
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -278,37 +281,62 @@ class ChatViewActivity : AppCompatActivity() {
 
         btn_post.setOnClickListener {
             var ACCESS_TOKEN = preferenceUtils.ACCESS_TOKEN
-//            var jsonString = preferenceUtils.AUTH_STATE
-//            var mAuthorizationService: AuthorizationService? = null
-//            mAuthorizationService = AuthorizationService(this)
-//            if (jsonString.isEmpty()) {
-//                try {
-//                    mAuthState = AuthState.fromJson(jsonString)
-//                } catch (e: Exception) {
-//
-//                }
-//            }
+            var jsonString = preferenceUtils.AUTH_STATE
+            var mAuthorizationService: AuthorizationService? = null
+            mAuthorizationService = AuthorizationService(this)
+            if (!jsonString.isEmpty()) {
+                try {
+                    mAuthState = AuthState.fromJson(jsonString)
+                } catch (e: Exception) {
+
+                }
+            }
             val request = InsertVideoLiveChatMessageRequest()
             request.snippet?.liveChatId = activeLiveChatId
             request.snippet?.type = "textMessageEvent"
             request.snippet?.textMessageDetails?.messageText = et_comment.text.toString()
-//            mAuthState?.performActionWithFreshTokens(mAuthorizationService,
-//                object : AuthState.AuthStateAction {
-//                    override fun execute(p0: String?, p1: String?, p2: AuthorizationException?) {
+
+            mAuthState?.performActionWithFreshTokens(mAuthorizationService,
+                object : AuthState.AuthStateAction {
+                    override fun execute(accessToken: String?, idToken: String?, exception: AuthorizationException?) {
 //                        object :AsyncTask<String,Void,JSONObject>() {
-//                            override fun doInBackground(vararg p0: String?): JSONObject {
-//return
+//                            override fun doInBackground(vararg tokens: String?): JSONObject? {
+//                                val client = OkHttpClient()
+//                                val request : Request = Request.Builder()
+//                                    .url("https://www.googleapis.com/youtube/v3/liveChat/messages")
+//                                    .addHeader("Authorization",String.format("Bearer %s",tokens.get(0)))
+//                                    .build()
+//
+//                                try {
+//                                    val response : Response = client.newCall(request).execute()
+//                                    var StringJSonBody = response.body()?.string()
+//                                    return JSONObject(StringJSonBody)
+//                                } catch (ex : Exception) {
+//                                    Log.d("TEXT","Text")
+//                                }
+//
+//                                return null
 //                            }
 //
-//                        }
+//                            override fun onPostExecute(result: JSONObject?) {
+////                                super.onPostExecute(result)
+//
+//                                if (result != null) {
+//                                    println("xxxx $result")
+//                                }
+//                            }
+//                        }.execute(accessToken)
+
                         viewModel.insertVideoLiveMessage(
                             accessToken = "Bearer $ACCESS_TOKEN",
                             part = "snippet",
                             key = YOUTUBE_API_KEY,
                             request = request
                         )
-//                    }
-//                })
+
+                    }
+                })
+
 
 //            xmpp.multiChatSendMessage(et_comment.text.toString())
             et_comment.setText("")
