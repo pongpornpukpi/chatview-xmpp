@@ -19,10 +19,10 @@ interface YoutubeApi {
     fun getViedoLiveStraming(@Query("id") id : String, @Query("key") key : String, @Query("part") part : String = "liveStreamingDetails") : Observable<VideoLiveStreamingDetailResponseModel>
 
     @GET("liveChat/messages")
-    fun getMessageLiveStreaming(@Query("liveChatId") id : String, @Query("key") key : String, @Query("part") part : String = "snippet") : Observable<VideoLiveMessageResponse>
+    fun getMessageLiveStreaming(@Query("liveChatId") id : String, @Query("key") key : String, @Query("part") part : String = "snippet", @Query("part") part2 : String = "authorDetails", @Query("profileImageSize") profileImageSize : String = "50") : Observable<VideoLiveMessageResponse>
 
     @GET("liveChat/messages")
-    fun getMessageLiveStreamingRealTime(@Query("liveChatId") id : String, @Query("key") key : String, @Query("part") part : String = "snippet", @Query("pageToken") pageToken : String) : Observable<VideoLiveMessageResponse>
+    fun getMessageLiveStreamingRealTime(@Query("liveChatId") id : String, @Query("key") key : String, @Query("part") part : String = "snippet", @Query("part") part2 : String = "authorDetails", @Query("profileImageSize") profileImageSize : String = "50", @Query("pageToken") pageToken : String) : Observable<VideoLiveMessageResponse>
 
     @POST("liveChat/messages")
     fun insertLiveChatMessages(@Header("Authorization") accessToken : String, @Query("part") part : String = "snippet", @Query("key") key : String, @Body insertVideoLiveChatMessageRequest: InsertVideoLiveChatMessageRequest) : Observable<InsertVideoLiveMessage>

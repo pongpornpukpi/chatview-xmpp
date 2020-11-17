@@ -163,7 +163,7 @@ class ChatViewModel constructor(
     }
 
     fun getVideoLiveMessageRequest(id: String,key: String, part: String) {
-        compositeDis.add(youtubeApi.getMessageLiveStreaming(id,key, part).subscribeOn(Schedulers.io())
+        compositeDis.add(youtubeApi.getMessageLiveStreaming(id,key, part,"authorDetails","50").subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnError {
                 println("Error : ${it.printStackTrace()}")
@@ -209,7 +209,7 @@ class ChatViewModel constructor(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                youtubeApi.getMessageLiveStreamingRealTime(id,key, part,this.nextPageToken).subscribeOn(Schedulers.io())
+                youtubeApi.getMessageLiveStreamingRealTime(id,key, part,"authorDetails","50",this.nextPageToken).subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe {
                         videoLiveStreamingMessageRealTime.postValue(it)

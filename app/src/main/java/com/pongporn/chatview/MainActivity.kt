@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         if (response != null) {
             Log.i(
                 ChatApplication().LOG_TAG,
-                String.format("Handled Authorization Response %s ", authState.toJsonString())
+                String.format("Handled Authorization Response %s ", authState.toString())
             )
             val service = AuthorizationService(this)
             service.performTokenRequest(
@@ -101,7 +101,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun persistAuthState(@NonNull authState: AuthState) {
         preferenceUtils.ACCESS_TOKEN = authState.accessToken!!
-        preferenceUtils.AUTH_STATE = authState.toJsonString()
+        preferenceUtils.AUTH_STATE = authState.toString()
         preferenceUtils.isGoogleLogin = true
         //    enablePostAuthorizationFlows();
 //                    fast pass Kia
@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity() {
                 val builder = AuthorizationRequest.Builder(
                     serviceConfiguration,
                     clientId,
-                    AuthorizationRequest.RESPONSE_TYPE_CODE,
+                    AuthorizationRequest.CODE_CHALLENGE_METHOD_PLAIN,
                     redirectUri
                 )
                 builder.setScopes("https://www.googleapis.com/auth/youtube")

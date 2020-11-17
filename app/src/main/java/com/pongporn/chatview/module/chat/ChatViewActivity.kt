@@ -286,7 +286,7 @@ class ChatViewActivity : AppCompatActivity() {
             mAuthorizationService = AuthorizationService(this)
             if (!jsonString.isEmpty()) {
                 try {
-                    mAuthState = AuthState.fromJson(jsonString)
+                    mAuthState = AuthState.jsonDeserialize(jsonString)
                 } catch (e: Exception) {
 
                 }
@@ -410,7 +410,8 @@ class ChatViewActivity : AppCompatActivity() {
                     ChatMessageModel(
                         timestamp = it.snippet?.publishedAt,
                         message = it.snippet?.displayMessage,
-                        name = ""
+                        name = it.authorDetails?.channelId,
+                        imageUrl = it.authorDetails?.profileImageUrl
                     )
                 )
             }
@@ -435,7 +436,8 @@ class ChatViewActivity : AppCompatActivity() {
                         ChatMessageModel(
                             timestamp = it.snippet?.publishedAt,
                             message = it.snippet?.displayMessage,
-                            name = ""
+                            name = it.authorDetails?.channelId,
+                            imageUrl = it.authorDetails?.profileImageUrl
                         )
                     )
                 }
