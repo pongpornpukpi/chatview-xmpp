@@ -90,7 +90,7 @@ class ChatViewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_view)
         userList = intent.getParcelableExtra<UserListModel>(USER_NAME)
-        initObserver()
+//        initObserver()
         initListener()
         initView()
         ButterKnife.bind(this)
